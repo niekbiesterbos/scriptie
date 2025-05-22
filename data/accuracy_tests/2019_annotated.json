@@ -1,0 +1,17 @@
+[
+  { "day": 1, "strategy": "Recursion" },
+  { "day": 2, "strategy": "None" },
+  { "day": 3, "strategy": "None" },
+  { "day": 4, "strategy": "GreedyAlgorithm" },
+  { "day": 5, "strategy": "None" },
+  { "day": 6, "strategy": "GraphTraversal" },
+  { "day": 7, "strategy": "None" },
+  { "day": 8, "strategy": "None" },
+  { "day": 9, "strategy": "None" },
+  { "day": 10, "strategy": "None" },
+  { "day": 12, "strategy": "None" },
+  { "day": 16, "strategy": "DynamicProgramming" },
+  { "day": 17, "strategy": "GreedyAlgorithm" },
+  { "day": 19, "strategy": "None" },
+  { "day": 22, "strategy": "None" }
+]

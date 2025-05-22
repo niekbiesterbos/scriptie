@@ -1,0 +1,17 @@
+{
+  "name": "add-metrics",
+  "version": "1.0.0",
+  "description": "Adds complexity metrics to Advent of Code solutions using Radon.",
+  "main": "addMetrics.js",
+  "scripts": {
+    "start": "npx tsx addMetrics.ts"
+  },
+  "dependencies": {
+    "snoowrap": "^1.21.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "tsx": "^4.19.4",
+    "typescript": "^4.8.4"
+  }
+}

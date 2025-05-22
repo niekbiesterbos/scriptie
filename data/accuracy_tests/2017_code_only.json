@@ -1,0 +1,102 @@
+[
+  {
+    "day": 1,
+    "part1": "import re\ndef solve_regex(captcha, n):\n    return sum(int(c) for c in re.findall(fr'(\\d)(?=.{{{n-1}}}\\1)', captcha+captcha[:n]))\n\nsolve_regex(captcha, 1)\nsolve_regex(captcha, len(captcha) // 2)"
+  },
+  {
+    "day": 2,
+    "part1": "import itertools\n\ndef digits(string):\n    return [int(n) for n in string.split()]\n\nwith open('p02.txt') as fp:\n    rows = [digits(line) for line in fp.read().strip().splitlines()]\n\nprint(sum(b-a for a, *_, b in map(sorted, rows)))\nprint(sum(b//a for row in rows for a, b in itertools.combinations(sorted(row), 2) if b%a==0))"
+  },
+  {
+    "day": 3,
+    "part1": "from itertools import count\n\ndef sum_spiral():\n    a, i, j = {(0,0) : 1}, 0, 0\n    for s in count(1, 2):\n        for (ds, di, dj) in [(0,1,0),(0,0,-1),(1,-1,0),(1,0,1)]:\n            for _ in range(s+ds):\n                i += di; j += dj\n                a[i,j] = sum(a.get((k,l), 0) for k in range(i-1,i+2)\n                                             for l in range(j-1,j+2))\n                yield a[i,j]\n\ndef part2(n):\n    for x in sum_spiral():\n        if x>n: return x"
+  },
+  {
+    "day": 4,
+    "part1": "import sys\nfrom collections import Counter\n\ndef soln(pwd, hashfn):\n    words = set()\n    for word in pwd.split(' '):\n        hashable = hashfn(word)\n        if hashable in words:\n            return False\n        words.add(hashable)\n    return True\n\nresult_1, result_2 = 0, 0\nidentity = lambda x : x\ncounter_hash = lambda x: frozenset(Counter(x).items())\nfor line in sys.stdin: \n    result_1 += soln(line.strip(), identity)\n    result_2 += soln(line.strip(), counter_hash)\n\nprint('Part 1: {}, Part 2: {}'.format(result_1, result_2))"
+  },
+  {
+    "day": 5,
+    "part1": "#! /usr/bin/env python3\n\nfrom util import expect, solution, input\n\n\ndef puzzle(list):\n    index = 0\n    steps = 0\n    while index >= 0 and index < len(list):\n        value = list[index]\n        if value >= 3:\n            list[index] -= 1\n        else:\n            list[index] += 1\n        index += value\n        steps += 1\n    return steps\n\n\nif __name__ == '__main__':\n    list = list(map(int, input('05').split('\\n')))\n    solution(puzzle(list))"
+  },
+  {
+    "day": 6,
+    "part1": "def distribute(banks):\n    # This is the number of values we need to redistribute.\n    m = max(banks)\n    index = 0\n    # We want the first value matching the maximum -- I didn't bother to check\n    # whether built-ins did this since time was of the essence.\n    for i, val in enumerate(banks):\n        if val == m:\n            index = i\n            break\n    # Zero out the value we start at.\n    banks[index] = 0\n    # Redistribute until we can't.\n    while m != 0:\n       index += 1\n       index %= len(banks)\n       banks[index] += 1\n       m -= 1\n\ndef solve(banks, count_second):\n    # Keep a set of seen states.\n    seen = set()\n    count = 0\n    \n    # Iterate until we get a repeat state.\n    while tuple(banks) not in seen:\n        # Add a tuple to our seen states since lists aren't hashable (learned\n        # this the hard way).\n        seen.add(tuple(banks))\n        # Redistribute the banks -- note that lists are passed by reference so\n        # this will mutate banks.\n        distribute(banks)\n        count += 1\n    # If we're going to count the secondary iterations, then recurse.\n    if count_second:\n        # Get the count starting anew from the last state.\n        return solve(banks, False)\n    # Otherwise, return the desired count.\n    else:\n        return count\n    \nwith open('6.in') as inp:\n    # Parse the input. \n    banks = list(map(int,inp.read().strip().split())) \n    # Part 1.\n    print(solve(banks, False))\n    # Part 2.\n    print(solve(banks, True))"
+  },
+  {
+    "day": 7,
+    "part1": "import re, collections\n\nwith open(\"p07.txt\") as fp:\n    text = fp.read()\n\nweight = {}\nchildren = {}\nfor line in text.strip().splitlines():\n    label, n, *xs = re.findall(r'\\w+', line)\n    weight[label] = int(n)\n    children[label] = tuple(xs)\n\nroot, = set(weight) - {c for cs in children.values() for c in cs}\n\ndef total_weight(label):\n    sub = [total_weight(c) for c in children[label]]\n    if len(set(sub)) > 1:\n        (target, _), (failure, _) = collections.Counter(sub).most_common()\n        print(target - failure + weight[children[label][sub.index(failure)]])\n        return weight[label] + sum(sub)\n    return weight[label] + sum(sub)\n\nprint(total_weight(root))"
+  },
+  {
+    "day": 8,
+    "part1": "import operator as op\nfrom collections import defaultdict\ncomps = {'>': op.gt, '<': op.lt, '>=': op.ge, '<=': op.le, '!=': op.ne, '==': op.eq}\n\ndef solve(input, mx=float('-inf'), ops=dict(inc=1, dec=-1)):\n    regs = defaultdict(int)\n    for r1, op, v1, _, r2, c, v2 in [l.split() for l in input.splitlines() if l]:\n        regs[r1] += ops[op] * int(v1) if comps[c](regs[r2], int(v2)) else 0\n        mx = max(mx, regs[r1])\n    return max(regs.values()), mx\n\npart1, part2 = solve(input)"
+  },
+  {
+    "day": 9,
+    "part1": "def day_9():\n    with open('input.txt') as input_file:\n        line = input_file.readline()\n        \n    score = 0\n    garbage_score = 0\n    current_depth = 0\n    inside_garbage = False\n    skip_char = False\n    for char in line:\n        if inside_garbage:\n            if skip_char:\n                skip_char = False\n            elif char == \"!\":\n                skip_char = True\n            elif char == \">\":\n                inside_garbage = False\n            else:\n                garbage_score += 1\n        else:  # when inside group, not garbage\n            if char == \"{\":\n                current_depth += 1\n            elif char == \"}\":\n                score += current_depth\n                current_depth -= 1\n            elif char == \"<\":\n                inside_garbage = True\n    \n    print(\"Part 1:   \", score)\n    print(\"Part 1:   \", garbage_score)\n\n\nday_9()"
+  },
+  {
+    "day": 10,
+    "part1": "from functools import reduce\n\ndef solve(ins, n=256, byte=False):\n    skip_size = 0\n    index = 0\n    nums = list(range(n))\n    if byte:\n        ins = [ord(k) for k in ins] + [17, 31, 73, 47, 23]\n    else:\n        ins = [int(k) for k in ins.split(',')]\n    n_iter = 1\n    if bytes:\n        n_iter = 64\n    for _ in range(n_iter):\n        s = ins[:]\n        for length in s:\n            seen = set()\n            i = (index + length - 1) % n\n            for j in range(index, index + length):\n                j = j % n\n                i = i % n\n                if j in seen or i in seen:\n                    break\n                seen.add(j)\n                seen.add(i)\n                # print(i, j)\n                nums[i], nums[j] = nums[j], nums[i]\n                i -= 1\n            index = (length + index + skip_size) % n\n            skip_size += 1\n    if not byte:\n        return nums[0] * nums[1]\n    dense = []\n    for j in range(0, n, 16):\n        val = reduce(lambda a, b: a ^ b, nums[j: j+16])\n        hexed = hex(val).replace('0x', '')\n        if len(hexed) == 1:\n            hexed = '0' + hexed\n        dense.append(hexed)\n    return ''.join(dense)"
+  },
+  {
+    "day": 11,
+    "part1": "def hexdist(u,v):\n    return max(abs(u), abs(v)) if u*v>0 else abs(u)+abs(v)"
+  },
+  {
+    "day": 12,
+    "part1": "pipes = {}\nwith open('day12.in') as f:\n    for line in f:\n        src, _, dsts = line.split(maxsplit=2)\n        pipes[int(src)] = set(map(int, dsts.split(', ')))\n\ndef find_group(seed):\n    group = {seed}\n    new = {seed}\n    while new:\n        next_new = set()\n        for item in new:\n            next_new.update(pipes[item])\n        new = next_new - group\n        group.update(next_new)\n    return group\nprint('Part 1:', len(find_group(0)))\n\nremaining = set(pipes)\ngroups = 0\nwhile remaining:\n    groups += 1\n    group = find_group(remaining.pop())\n    remaining -= group\nprint('Part 2:', groups)"
+  },
+  {
+    "day": 13,
+    "part1": "lines = [line.split(': ') for line in sys.stdin.readlines()]\n\nheights = {int(pos): int(height) for pos, height in lines}\n\ndef scanner(height, time):\n    offset = time % ((height - 1) * 2)\n\n    return 2 * (height - 1) - offset if offset > height - 1 else offset\n\npart1 = sum(pos * heights[pos] for pos in heights if scanner(heights[pos], pos) == 0)\n\npart2 = next(wait for wait in itertools.count() if not any(scanner(heights[pos], wait + pos) == 0 for pos in heights))"
+  },
+  {
+    "day": 14,
+    "part1": "from aocd import data\nfrom q10 import knot_hash\nimport numpy as np\nfrom scipy.ndimage.measurements import label\n\ndef f(data):\n    s = ''.join(f\"{int(knot_hash(f'{data}-{i}'), 16):0128b}\" for i in range(128))\n    return s.count('1'), label(np.fromiter(s, dtype=int).reshape(128, 128))[1]"
+  },
+  {
+    "day": 15,
+    "part1": "def AG():\n  x = 591\n  while True:\n    x *= 16807\n    x %= 2147483647\n    if x % 4 == 0:\n      yield x"
+  },
+  {
+    "day": 16,
+    "part1": "def solve(raw_steps):\n    steps = [d for d in raw_steps.split(',')]\n    programs = [n for n in 'abcdefghijklmnop']\n    seen = []\n    for i in range(1000000000):\n        h = tuple(programs)\n        if h in seen:\n            return ''.join(seen[1000000000 % len(seen)])\n        seen += [h]\n        for step in steps:\n            if step[0] == 's':\n                node = int(step[1:])\n                programs = programs[-node:] + programs[:-node]\n            if step[0] == 'x':\n                n1, n2 = list(map(int, step[1:].split('/')))\n                programs[n1], programs[n2] = programs[n2], programs[n1]\n            if step[0] == 'p':\n                n1, n2 = step[1:].split('/')\n                d1, d2 = programs.index(n1), programs.index(n2)\n                programs[d1], programs[d2] = n2, n1\n    return ''.join(programs)"
+  },
+  {
+    "day": 17,
+    "part1": "def solve1(n, i=0, r=range(1, 2018), s=None):\n    for k in r: s = s or [0]; i = (i+n)%len(s)+1; s.insert(i, k)\n    return s[i+1]\n\ndef solve2(n, i=0, r=range(1, int(5e7+1)), v=None):\n    for k in r: i = (i+n)%k+1; v = {1: k}.get(i, v)\n    return v"
+  },
+  {
+    "day": 18,
+    "part1": "import queue\nimport collections\nimport multiprocessing.pool\n\n\nPROGRAM = list(sys.stdin)\n\n\ndef run(ident, inqueue, outqueue):\n    regs = collections.defaultdict(int)\n    regs['p'] = ident\n\n    def val(v):\n        try:\n            return int(v)\n        except ValueError:\n            return regs[v]\n\n    pc = 0\n    count = 0\n    played = None\n\n    while 0 <= pc < len(PROGRAM):\n        cmd = PROGRAM[pc].split()\n        if cmd[0] == 'snd':\n            played = val(cmd[1])\n            if outqueue:\n                outqueue.put(val(cmd[1]))\n            count += 1\n        elif cmd[0] == 'set':\n            regs[cmd[1]] = val(cmd[2])\n        elif cmd[0] == 'add':\n            regs[cmd[1]] += val(cmd[2])\n        elif cmd[0] == 'mul':\n            regs[cmd[1]] *= val(cmd[2])\n        elif cmd[0] == 'mod':\n            regs[cmd[1]] %= val(cmd[2])\n        elif cmd[0] == 'rcv':\n            if inqueue:\n                try:\n                    regs[cmd[1]] = inqueue.get(timeout=5)\n                except queue.Empty:\n                    return count\n            elif regs[cmd[1]] != 0:\n                return played\n        elif cmd[0] == 'jgz':\n            if val(cmd[1]) > 0:\n                pc += val(cmd[2])\n                continue\n        pc += 1\n\n    return count\n\n\nprint('PART 1:', run(0, None, None))\n\npool = multiprocessing.pool.ThreadPool(processes=2)\n\nq1 = multiprocessing.Queue()\nq2 = multiprocessing.Queue()\n\nres1 = pool.apply_async(run, (0, q1, q2))\nres2 = pool.apply_async(run, (1, q2, q1))\n\nres1.get()\nprint('PART 2:', res2.get())"
+  },
+  {
+    "day": 19,
+    "part1": "diagram = open('advent19.txt').readlines()\n\nDOWN = 0\nLEFT = 1\nUP = 2\nRIGHT = 3\n\ndef solve(diagram):\n    i, j = 0, 1\n    direction = DOWN\n\n    letters = ''\n    count = 0\n\n    while direction != None:\n        count += 1\n        i, j, direction, letter = walk(diagram, i, j, direction)\n        if letter:\n            letters += letter\n\n    return letters, count\n\ndef walk(diagram, i, j, direction):\n    i, j = step(i, j, direction)\n    if diagram[i][j] == ' ':\n        return i, j, None, None\n    elif diagram[i][j].isalpha():\n        return i, j, direction, diagram[i][j]\n    elif diagram[i][j] == '+':\n        i_, j_ = step(i, j, (direction + 1) % 4)\n        if diagram[i_][j_] in ['-', '|']:\n            return i, j, (direction + 1) % 4, None\n        else:\n            return i, j, (direction + 3) % 4, None\n    else:\n        return i, j, direction, None\n\ndef step(i, j, direction):\n    if direction == DOWN:\n        return i+1, j\n    elif direction == UP:\n        return i-1, j\n    elif direction == LEFT:\n        return i, j-1\n    elif direction == RIGHT:\n        return i, j+1\n\ns1, s2 = solve(diagram)\nprint('Solution part 1:', s1)\nprint('Solution part 2:', s2)"
+  },
+  {
+    "day": 20,
+    "part1": "from collections import defaultdict\n\nf = open(\"20.txt\", \"r\")\n\nclass Particle(object):\n  def __init__(self, p, v, a):\n    self.p = p\n    self.v = v\n    self.a = a"
+  },
+  {
+    "day": 21,
+    "part1": "import numpy as np\nfrom collections import Counter\n\n\ndef expand(pre, post):\n    rules = []\n\n    for k in [0, 1, 2, 3]:\n        rot = np.rot90(pre, k=k)\n        rules.append((rot.flatten(), post))\n        rules.append((np.fliplr(rot).flatten(), post))\n        rules.append((np.flipud(rot).flatten(), post))\n\n    return rules\n\n\ndef match(incell, rules):\n    for pre, post in rules:\n        if np.allclose(incell.flatten(), pre):\n            return post\n    assert False\n\n\ndef iterate(grid):\n    size = len(grid)\n    if size % 2 == 0:\n        steps = size // 2\n        new_grid = np.zeros((3*steps, 3*steps))\n        for row in xrange(steps):\n            for col in xrange(steps):\n                incell = grid[2*row:2*row + 2, 2*col:2*col + 2].copy()\n                outcell = match(incell, rules2)\n                new_grid[3*row:3*row + 3, 3*col:3*col + 3] = outcell.copy()\n    elif size % 3 == 0:\n        steps = size // 3\n        new_grid = np.zeros((4*steps, 4*steps))\n        for row in xrange(steps):\n            for col in xrange(steps):\n                incell = grid[3*row:3*row + 3, 3*col:3*col + 3].copy()\n                outcell = match(incell, rules3)\n                new_grid[4*row:4*row + 4, 4*col:4*col + 4] = outcell.copy()\n    else:\n        assert False\n    return new_grid\n\n\ndef calc_block_map_3_iters(block_string):\n    block = np.array([int(c) for c in block_string]).reshape((3, 3))\n\n    grid = iterate(block)\n    grid = iterate(grid)\n    grid = iterate(grid)\n\n    counts = Counter()\n    for row in xrange(3):\n        for col in xrange(3):\n            to_block = grid[3*row:3*row+3, 3*col:3*col+3]\n            to_block = ''.join(str(int(x)) for x in to_block.flatten())\n            counts[to_block] += 1\n\n    return counts\n\n\ndef fast_count(init_block, steps):\n    if steps % 3 != 0:\n        assert False\n    steps //= 3\n\n    block_counts = Counter()\n    block_counts[init_block] += 1\n    maps = {}\n\n    for step in xrange(steps):\n        new_block_counts = Counter()\n\n        for block, count in block_counts.items():\n            if block not in maps:\n                maps[block] = calc_block_map_3_iters(block)\n            for to_block, to_count in maps[block].items():\n                new_block_counts[to_block] += count * to_count\n\n        block_counts = new_block_counts\n\n    total_ones = 0\n    for block, count in block_counts.items():\n        total_ones += block.count(\"1\") * count\n\n    return total_ones\n\n\nrules2 = []\nrules3 = []\nwith open(\"in.txt\") as f:\n    for line in f.readlines():\n        pre, post = line.strip().split(\" => \")\n        pre = pre.replace(\"/\", \"\")\n        post = post.replace(\"/\", \"\")\n        pre = np.array([1 if c == \"#\" else 0 for c in pre])\n        post = np.array([1 if c == \"#\" else 0 for c in post])\n\n        if len(pre) == 4:\n            rules2 += expand(pre.reshape((2, 2)), post.reshape((3, 3)))\n        elif len(pre) == 9:\n            rules3 += expand(pre.reshape((3, 3)), post.reshape((4, 4)))\n        else:\n            assert False\n\ninit_block = \"010001111\"\nprint(fast_count(init_block, 18))"
+  },
+  {
+    "day": 22,
+    "part1": "def advent22b(s):\n    rows = s.splitlines()\n    map = {}\n    h = len(rows)//2\n    for x,r in enumerate(rows):\n        for y,c in enumerate(r):\n            if c == \"#\":\n                map[y - x*1j] = \"i\" # up = decrease in x; right = increase in y\n    dirc = 0 + 1j # up\n    posc = h - h * 1j\n    infections = 0\n    for i in range(10000000):\n        node = (map[posc] if posc in map else \"c\")\n        if node == \"c\": \n            dirc *= 1j\n            map[posc] = \"w\"\n        elif node == \"w\":\n            map[posc] = \"i\"\n            infections += 1\n        elif node == \"i\":\n            dirc *= -1j\n            map[posc] = \"f\"\n        elif node == \"f\":\n            dirc *= -1\n            map[posc] = \"c\"\n        posc += dirc\n    return infections"
+  },
+  {
+    "day": 23,
+    "part1": "import re\ncmds = [x.split() for x in open('23.in','r').readlines()]\nregs = [0 for _ in range(8)]\ndef getval(r):\n\tif re.match('[\\-0-9]',r):\n\t\treturn int(r)\n\telse:\n\t\treturn regs[ord(r) - 97]\ni1 = 0\nm = 0\nwhile 0 <= i1 < len(cmds):\n\tcmd = cmds[i1]\n\tc = cmd[0]\n\tif c == 'jnz':\n\t\tif getval(cmd[1]) != 0:\n\t\t\ti1 += getval(cmd[2])\n\t\telse:\n\t\t\ti1 += 1\n\telse:\n\t\tif c == 'set':\n\t\t\tregs[ord(cmd[1]) - 97] = getval(cmd[2])\n\t\tif c == 'sub':\n\t\t\tregs[ord(cmd[1]) - 97] -= getval(cmd[2])\n\t\tif c == 'mul':\n\t\t\tregs[ord(cmd[1]) - 97] *= getval(cmd[2])\n\t\t\tm += 1\n\t\ti1 += 1\nprint(m)\nh = 0\nfor x in range(105700,122700 + 1,17):\n\tfor i in range(2,x):\n\t\tif x % i == 0:\n\t\t\th += 1\n\t\t\tbreak\nprint(h)"
+  },
+  {
+    "day": 24,
+    "part1": "def gen_bridges(bridge, components):\n    bridge = bridge or [(0, 0)]\n    cur = bridge[-1][1]\n    for b in components[cur]:\n        if not ((cur, b) in bridge or (b, cur) in bridge):\n            new = bridge+[(cur, b)]\n            yield new\n            yield from gen_bridges(new, components)\n\ndef parse_components(input):\n    components = defaultdict(set)\n    for l in input.strip().splitlines():\n        a, b = [int(x) for x in l.split('/')]\n        components[a].add(b)\n        components[b].add(a)\n    return components\n\ndef solve(input):\n    components = parse_components(input)\n    mx = []\n    for bridge in gen_bridges(None, components):\n        mx.append((len(bridge), sum(a+b for a, b in bridge)))\n    return mx\n\nsolution = solve(input)\npart1 = sorted(solution, key=lambda x: x[1])[-1][1]\npart2 = sorted(solution)[-1][1]"
+  },
+  {
+    "day": 25,
+    "part1": "class TuringMachine:\n    def __init__(self, startstate, endstate, states):\n        self.state = startstate\n        self.endstate = endstate\n        self.states = states\n        self.tape = {0: 0}\n        self.pos = 0\n\n    def process(self):\n        for i in range(0, self.endstate):\n            if self.pos not in self.tape:\n                self.tape[self.pos] = 0\n\n            nextstate = self.states[self.state][self.tape[self.pos]]['nextstate']\n            move = self.states[self.state][self.tape[self.pos]]['move']\n\n            self.tape[self.pos] = self.states[self.state][self.tape[self.pos]]['write']\n\n            self.pos += move\n            self.state = nextstate\n\n    def checksum(self):\n        return sum(self.tape.values())"
+  }
+]

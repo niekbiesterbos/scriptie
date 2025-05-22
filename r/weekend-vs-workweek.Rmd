@@ -1,0 +1,133 @@
+---
+title: "weekend-vs-workwork"
+author: "Niek Biesterbos"
+date: "2025-05-02"
+output: html_document
+---
+
+```{r prepare-df}
+library(jsonlite)
+library(tidyverse)
+library(broom)
+library(ggpubr)
+library(FSA)
+library(dunn.test)
+
+data <- fromJSON("../data/solutions_with_metrics.json", simplifyVector = FALSE)
+
+# Step 2: Build dataframe
+df <- purrr::map_dfr(data, function(sol) {
+  if (is.null(sol$algorithmicStrategies) || 
+      is.null(sol$maintainabilityIndex$mi) ||
+      is.null(sol$halsteadMetrics$total$volume) ||
+      is.null(sol$day) ||
+      is.null(sol$year)) return(NULL)
+
+  strategy <- sol$algorithmicStrategies[[1]]
+  mi <- sol$maintainabilityIndex$mi
+  halstead <- sol$halsteadMetrics$total$volume
+  day <- sol$day
+  year <- sol$year
+
+  cc_list <- sol$cyclomaticComplexity
+  if (!is.null(cc_list) && length(cc_list) > 0) {
+    cc_vals <- sapply(cc_list, function(f) f$complexity)
+    cc <- mean(cc_vals)
+  } else {
+    cc <- NA_real_
+  }
+
+  tibble(strategy = strategy, day = day, year = year, mi = mi, halstead = halstead, cc = cc)
+})
+
+
+# Step 3: Clean missing
+df <- df %>% filter(!is.na(year), !is.na(day), !is.na(mi), !is.na(halstead), !is.na(cc))
+```
+
+```{r weekend-days}
+weekend_days <- c("5-2015", "6-2015", "12-2015", "13-2015", "19-2015", "20-2015",
+  "3-2016", "4-2016", "10-2016", "11-2016", "17-2016", "18-2016", "24-2016", "25-2016",
+  "2-2017", "3-2017", "9-2017", "10-2017", "16-2017", "17-2017", "23-2017", "24-2017",
+  "1-2018", "2-2018", "8-2018", "9-2018", "15-2018", "16-2018", "22-2018", "23-2018",
+  "1-2019", "7-2019", "8-2019", "14-2019", "15-2019", "21-2019", "22-2019",
+  "5-2020", "6-2020", "12-2020", "13-2020", "19-2020", "20-2020",
+  "4-2021", "5-2021", "11-2021", "12-2021", "18-2021", "19-2021", "25-2021",
+  "3-2022", "4-2022", "10-2022", "11-2022", "17-2022", "18-2022", "24-2022", "25-2022",
+  "2-2023", "3-2023", "9-2023", "10-2023", "16-2023", "17-2023", "23-2023", "24-2023",
+  "1-2024", "7-2024", "8-2024", "14-2024", "15-2024", "21-2024", "22-2024")
+
+
+df <- df %>%
+  mutate(day_year = paste(day, year, sep = "-"),
+         weekend = ifelse(day_year %in% weekend_days, "yes", "no"))
+
+str(df)
+
+```
+
+```{r halstead}
+ggplot(df, aes(x = weekend, y = halstead, fill = weekend)) +
+  geom_boxplot() +
+  labs(
+    title = "Halstead volume on weekend vs workweek days",
+    x = "Day type",
+    y = "Halstead volume"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+ggsave("images/halstead_weekend_vs_workweek.jpg", width = 8, height = 5, dpi = 300)
+
+kruskal_halstead <- kruskal.test(halstead ~ weekend, data = df)
+kruskal_halstead
+```
+
+
+```{r halstead-effect}
+k <- length(unique(df$strategy))
+n <- nrow(df)
+H <- kruskal_halstead$statistic
+
+eta2_halstead <- (H - k + 1) / (n - k)
+eta2_halstead
+```
+
+```{r cc}
+df_cc_n <- df %>% count(weekend)
+
+ggplot(df, aes(x = weekend, y = cc, fill = weekend)) +
+  geom_boxplot() +
+  labs(
+    title = "Cyclomatic complexity on weekend vs workweek days",
+    x = "Day type",
+    y = "Cyclomatic complexity"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+ggsave("images/cc_weekend_vs_workweek.jpg", width = 8, height = 5, dpi = 300)
+
+kruskal_cc <- kruskal.test(cc ~ weekend, data = df)
+kruskal_cc
+
+```
+
+```{r mi}
+df_mi_n <- df %>% count(weekend)
+
+ggplot(df, aes(x = weekend, y = mi, fill = weekend)) +
+  geom_boxplot() +
+  labs(
+    title = "Maintainability index on weekend vs workweek days",
+    x = "Day type",
+    y = "Maintainability index"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+ggsave("images/mi_weekend_vs_workweek.jpg", width = 8, height = 5, dpi = 300)
+
+kruskal_mi <- kruskal.test(mi ~ weekend, data = df)
+kruskal_mi
+```

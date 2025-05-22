@@ -1,0 +1,7 @@
+services:
+  add-metrics:
+    build: .
+    volumes:
+      - ../../data/solutions.json:/app/solutions.json:ro
+      - ./output:/data
+    command: ["npm", "run", "start"]

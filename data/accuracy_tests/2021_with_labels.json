@@ -1,0 +1,122 @@
+[
+  {
+    "day": 1,
+    "strategy": "None",
+    "part1": "def part1(depths):\n    return sum(a < b for a, b in itertools.pairwise(depths))\n\ndef part2(depths):\n    return part1(map(sum, more_itertools.triplewise(depths)))"
+  },
+  {
+    "day": 2,
+    "strategy": "None",
+    "part1": "class Position:\n\n    def __init__(self):\n        self.horizontal = 0\n        self.depth = 0\n\n    def forward(self, x):\n        self.horizontal += x\n\n    def up(self, x):\n        self.depth -= x\n\n    def down(self, x):\n        self.depth += x\n\n    def final(self):\n        return self.horizontal * self.depth\n\n\ninputs = open('input.txt', 'r').readlines()\n\nsubmarine = Position()\n\nfor line in inputs:\n    x, y = line.split()\n    if x == \"forward\":\n        submarine.forward(int(y))\n    if x == \"up\":\n        submarine.up(int(y))\n    if x == \"down\":\n        submarine.down(int(y))\nprint(submarine.final())"
+  },
+  {
+    "day": 3,
+    "strategy": "Recursion",
+    "part1": "import sys\n\nlines = open(sys.argv[1]).readlines()\n\nb = len(lines[0]) - 1\ndef m(i,l):\n\treturn sum(int(l[i]) for l in l) >= len(l)/2\ng = sum(2**i * m(-2-i,lines) for i in range(b))\ne = 2**b - 1 - g\n\ndef n(l,i,o):\n\treturn l[0] if len(l) == 1 else n([ e for e in l if (int(e[i]) ^ m(i,l)) ^ o ], i+1, o)\nx = int(n(lines,0,1),2)\nc = int(n(lines,0,0),2)\n\nprint(\"Part 1: {:d}\".format(e*g))\nprint(\"Part 2: {:d}\".format(x*c))"
+  },
+  {
+    "day": 4,
+    "strategy": "DynamicProgramming",
+    "part1": "def is_winner(board, ns):\n  return (any(all(v in ns for v in row) for row in board) or\n          any(all(row[i] in ns for row in board) for i in range(len(board))))\n\ndef winners(s):\n  nums, *boards = s.split('\\n\\n')\n  nums = [int(v) for v in nums.split(',')]\n  boards = [[[int(v) for v in row.split()] for row in board.splitlines()] for board in boards]\n  complete = [False for _ in range(len(boards))]\n  ns = set()\n  for n in nums:\n    ns.add(n)\n    for i, board in enumerate(boards):\n      if is_winner(board, ns) and not complete[i]:\n        complete[i] = True\n        yield sum(n for row in board for n in row if n not in ns) * n\n        if all(complete):\n          return\n\ndef part1(s):\n  return next(winners(s))\n\ndef part2(s):\n  for board in winners(s):\n    pass\n  return board"
+  },
+  {
+    "day": 5,
+    "strategy": "None",
+    "part1": "from advent import get_data\nfrom collections import defaultdict\nimport parse\n\ndata = get_data(5, year=2021)\n\ndef sign(foo):\n  if foo < 0:\n    return -1\n  elif foo == 0:\n    return 0\n  return 1\n\npoints = defaultdict(int)\npoints_with_diags = defaultdict(int)\n\nfor line in data:\n  sx, sy, ex, ey = tuple(parse.parse('{:d},{:d} -> {:d},{:d}', line).fixed)\n  l1 = abs(ex - sx)\n  l2 = abs(ey - sy)\n  s1 = sign(ex - sx)\n  s2 = sign(ey - sy)\n  for i in range(max(l1, l2)+1):\n    x, y = sx+s1*i, sy+s2*i\n    points_with_diags[x,y] += 1\n    if min(l1, l2) == 0:\n      points[x,y] += 1\n\nprint(len([c for c in points if points[c] > 1]))\nprint(len([c for c in points_with_diags if points_with_diags[c] > 1]))"
+  },
+  {
+    "day": 6,
+    "strategy": "Recursion",
+    "part1": "def f(a):\n    return f(a-9) + f(a-7) if a>0 else 1\n    \nprint(sum(f(80-t) for t in [3,4,3,1,2]))"
+  },
+  {
+    "day": 7,
+    "strategy": "None",
+    "part1": "l = ints(inp)\nl.sort()\nmid = l[len(l)//2]\nout = sum(abs(x-mid) for x in l)"
+  },
+  {
+    "day": 8,
+    "strategy": "None",
+    "part1": "import sys\n\nDIGITS = ('abcefg', 'cf', 'acdeg', 'acdfg', 'bcdf', 'abdfg', 'abdefg', 'acf',\n        'abcdefg', 'abcdfg')\nOVERLAPS = (None, None, 'cf', 'acf', 'bcdf', 'adg', 'abfg', 'abcdefg')\n\ndef parse(line):\n    inputs, outputs = line.split(' | ')\n    return inputs.split(), outputs.split()\n\ndef output(inp, outp):\n    candidates = {c: set('abcdefg') for c in 'abcdefg'}\n    for pattern in inp:\n        for char in OVERLAPS[len(pattern)]:\n            candidates[char] &= set(pattern)\n\n    known = {}\n    while any(candidates.values()):\n        all_known = set(known.values())\n        for char, possibilities in candidates.items():\n            possibilities -= all_known\n            if len(possibilities) == 1:\n                known[char] = possibilities.pop()\n\n    trans = str.maketrans(''.join(known[c] for c in 'abcdefg'), 'abcdefg')\n    out = 0\n    for pattern in outp:\n        out = out * 10 + DIGITS.index(''.join(sorted(pattern.translate(trans))))\n    return out\n\nnotes = list(map(parse, sys.stdin))\nprint(sum(sum(len(o) in (2, 3, 4, 7) for o in outp) for inp, outp in notes))\nprint(sum(output(i, o) for i, o in notes))"
+  },
+  {
+    "day": 9,
+    "strategy": "None",
+    "part1": "import re\n    \nimport cv2\nimport numpy as np\nfrom scipy.ndimage import label\n\nimport aoc_helper\n\nRAW = aoc_helper.day(9)\n\nCAVE_MAP = np.fromiter(map(int, re.findall(r\"\\d\", RAW)), dtype=int).reshape(100, 100)\n\ndef part_one():\n    border_map = np.pad(CAVE_MAP, 1, mode=\"constant\", constant_value=9)\n    \n    mask = (\n        (CAVE_MAP < border_map[2:   , 1: -1])\n        & (CAVE_MAP < border_map[ : -2, 1: -1])\n        & (CAVE_MAP < border_map[1: -1, 2:   ])\n        & (CAVE_MAP < border_map[1: -1,  : -2])\n    )\n    return (CAVE_MAP[mask] + 1).sum()\n\ndef part_two():\n    labels, nbins = label(CAVE_MAP != 9)\n    labels = labels.reshape(-1)\n    \n    return np.partition(np.bincount(labels, labels != 0), nbins - 3)[-3:].prod().astype(int)"
+  },
+  {
+    "day": 10,
+    "strategy": "None",
+    "part1": "def compute2(data: list[str]) -> int:\n    closer = {\"(\": \")\", \"[\": \"]\", \"{\": \"}\", \"<\": \">\"}\n    opener = {\")\": \"(\", \"]\": \"[\", \"}\": \"{\", \">\": \"<\"}\n    score_values = {\")\": 1, \"]\": 2, \"}\": 3, \">\": 4}\n    scores = []\n    for line in data:\n        stack = []\n        score = 0\n        for c in line:\n            if c in closer:\n                stack.append(c)\n            elif stack.pop() != opener[c]:\n                break\n        else:\n            while len(stack) > 0:\n                c = closer[stack.pop()]\n                score = score * 5 + score_values[c]\n            scores.append(score)\n    return sorted(scores)[len(scores) // 2]"
+  },
+  {
+    "day": 11,
+    "strategy": "None",
+    "part1": "e = {(x,y):int(e) for x,l in enumerate(open(0))\n                  for y,e in enumerate(l.strip())}\n\ndef neighbours(x,y): return filter(e.get, \n            [(x+1,y+1),(x+1,y),(x+1,y-1),(x,y+1),\n             (x-1,y-1),(x-1,y),(x-1,y+1),(x,y-1)])\n\ncount = 0\nfor step in range(1, 1000):\n    for i in e: e[i] += 1\n    flashing = {i for i in e if e[i] > 9}\n\n    while flashing:\n        f = flashing.pop()\n        e[f] = 0\n        count += 1\n        for n in neighbours(*f):\n            e[n] += 1\n            if e[n] > 9: flashing.add(n)\n\n    if step == 100: print(count)\n    if sum(e.values()) == 0: print(step); break"
+  },
+  {
+    "day": 12,
+    "strategy": "Recursion",
+    "part1": "from collections import defaultdict\nneighbours = defaultdict(list)\n\nfor line in open(0):\n    a, b = line.strip().split('-')\n    neighbours[a] += [b]\n    neighbours[b] += [a]\n\ndef count(part, seen=[], cave='start'):\n    if cave == 'end': return 1\n    if cave in seen:\n        if cave == 'start': return 0\n        if cave.islower():\n            if part == 1: return 0\n            else: part = 1\n\n    return sum(count(part, seen+[cave], n)\n                for n in neighbours[cave])\n\nprint(count(part=1), count(part=2))"
+  },
+  {
+    "day": 13,
+    "strategy": "None",
+    "part1": "with open('AOC_day13.txt', 'r') as f:\n    points, folds = f.read().split('\\n\\n')\n    points = {tuple(map(int, p.split(','))) for p in points.split('\\n')}\n    folds = [(fold[11], int(fold[13:])) for fold in folds.split('\\n')]\n\ndef fold_paper(points, axis, n):\n    if axis == 'x':\n        return {(y-(y-n)*2, x) if y > n else (y, x) for y, x in points}\n    return {(y, x-(x-n)*2) if x > n else (y, x) for y, x in points}\n\ndef AOC_day13_pt1(points):\n    axis, n = folds[0]\n    return len(fold_paper(points, axis, n))\n    \ndef AOC_day13_pt2(points):\n    for axis, n in folds:\n        points = fold_paper(points, axis, n)\n    return display_code(points)\n\ndef display_code(points): \n    arr = [[' '] * 39 for _ in range(6)]\n    for y, x in points:\n        arr[x][y] = '#'\n    return '\\n'.join(''.join(row) for row in arr)\n\nprint(AOC_day13_pt1(points))\nprint(AOC_day13_pt2(points))"
+  },
+  {
+    "day": 14,
+    "strategy": "MemoizedRecursion",
+    "part1": "from collections import Counter\nfrom functools import cache\n\ntpl, _, *rules = open(0).read().split('\\n')\nrules = dict(r.split(\" -> \") for r in rules)\n\n@cache\ndef f(a, b, depth=40):\n    if depth == 0: return Counter('')\n    x = rules[a+b]\n    return Counter(x) + f(a, x, depth-1) \\\n                      + f(x, b, depth-1)\n\nc = sum(map(f, tpl, tpl[1:]), Counter(tpl))\nprint(max(c.values()) - min(c.values()))"
+  },
+  {
+    "day": 15,
+    "strategy": "None",
+    "part1": "import sys\ninf = sys.argv[1] if len(sys.argv) > 1 else 'input'\n\nll = [[int(y) for y in x] for x in open(inf).read().strip().split('\\n')]\n\ndef inr(pos, arr):\n\treturn pos[0] in range(len(arr)) and pos[1] in range(len(arr[0]))\n\nq = [(0, 0, 0)]\ncosts = {}\nwhile True:\n\tcost,x,y = q[0]\n\tif x==len(ll)-1 and y==len(ll[0])-1: \n\t\tprint(cost)\n\t\tbreak\n\tq=q[1:]\n\tfor xx,yy in [(x+1,y),(x-1,y),(x,y-1),(x,y+1)]:\n\t\tif inr((xx,yy),ll):\n\t\t\tnc = cost + ll[xx][yy]\n\t\t\tif (xx,yy) in costs and costs[(xx,yy)]<=nc:\n\t\t\t\tcontinue\n\t\t\tcosts[(xx,yy)]=nc\n\t\t\tq.append((nc,xx,yy))\n\tq = sorted(q)"
+  },
+  {
+    "day": 16,
+    "strategy": "Recursion",
+    "part1": "from time import perf_counter as pfc\nimport math\n\nclass Transmission:\n  def __init__(self, bits):\n    self.bits = bits\n    self.pc = 0\n    self.sumVersions = 0\n\n  def get(self,n):\n    val = int(self.bits[self.pc:self.pc+n],2)\n    self.pc += n\n    return val  \n\n\ndef read_puzzle(file):\n  with open(file) as f:\n    return ''.join((bin(int(f.read().strip(), 16))[2:]))\n\n\noperations   = (sum, math.prod, min, max, None, lambda x: x[0] > x[1],\n                lambda x: x[0] < x[1], lambda x: x[0] == x[1])\n\ndef parse(bits):\n  bits.sumVersions += bits.get(3)\n  typeID  = bits.get(3)\n\n  if typeID == 4:\n    result = 0\n    while True:\n      cont = bits.get(1)\n      result = result * 16 + bits.get(4)\n      if not cont: return result\n  \n  results = []\n  if bits.get(1):\n    for _ in range(bits.get(11)):\n      results.append(parse(bits))\n  else:  \n    lenght = bits.get(15)\n    end = bits.pc + lenght\n    while bits.pc < end:\n      results.append(parse(bits))\n  \n  return operations[typeID](results)\n\n\ndef solve(puzzle):\n  transmission = Transmission(puzzle)\n  part2 = parse(transmission)\n  return transmission.sumVersions, part2\n\n\nstart = pfc()\nprint(solve(read_puzzle('Tag_16.txt')))\nprint(pfc()-start)"
+  },
+  {
+    "day": 17,
+    "strategy": "Recursion",
+    "part1": "from re import findall\nx1,x2,y1,y2 = map(int, findall(r'-?\\d+', input()))\n\ndef sim(vx, vy, px=0, py=0):\n    if px > x2 or py < y1: return 0\n    if px >= x1 and py <= y2: return 1\n    return sim(vx-(vx>0), vy-1 , px+vx, py+vy)\n\nhits = [sim(x,y) for x in range(1, 1+x2)\n                 for y in range(y1, -y1)]\n\nprint(y1*(y1+1)//2, sum(hits))"
+  },
+  {
+    "day": 18,
+    "strategy": "Recursion",
+    "part1": "def explode(n, level=0):\n    if not isinstance(n, int):\n        l, r = n\n        if level >= 4:\n            return 0, True, l, r\n        else:\n            l, reduced, expl, expr = explode(l, level + 1)\n            if reduced:\n                if expr != 0:\n                    r = add_left(r, expr)\n                    expr = 0\n            else:\n                r, reduced, expl, expr = explode(r, level + 1)\n                if reduced:\n                    if expl != 0:\n                        l = add_right(l, expl)\n                        expl = 0\n            if reduced:\n                return (l, r), True, expl, expr\n    return n, False, 0, 0\n\ndef add_left(n, m):\n    if isinstance(n, int):\n        return n + m\n    else:\n        a, b = n\n        return add_left(a, m), b\n\ndef add_right(n, m):\n    if isinstance(n, int):\n        return n + m\n    else:\n        a, b = n\n        return a, add_right(b, m)"
+  },
+  {
+    "day": 19,
+    "strategy": "None",
+    "part1": "coord_remaps = [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0)]\ncoord_negations = [(1, 1, 1), (1, 1, -1), (1, -1, 1), (1, -1, -1), (-1, 1, 1), (-1, 1, -1), (-1, -1, 1), (-1, -1, -1)]\ndef apply(remap, negat, scan):\n\tret = []\n\tfor item in scan:\n\t\tret.append([negat[0]*item[remap[0]], negat[1]*item[remap[1]], negat[2]*item[remap[2]]])\n\treturn ret"
+  },
+  {
+    "day": 20,
+    "strategy": "None",
+    "part1": "import itertools\nwith open('day20_input') as fp:\n  algorithm, rest = fp.read().split('\\n\\n')\n\nalgorithm = [str('.#'.index(x)) for x in algorithm]\ndata = {(x,y): str('.#'.index(pixel))\n        for y, row in enumerate(rest.split('\\n'))\n        for x, pixel in enumerate(row)}   \ngrid = list(itertools.product((-1, 0, 1), repeat=2))\nadj = lambda d: {(x+dx, y+dy) for x, y in d for dy, dx in grid}\n\ndef enhance(x, y, values, default):\n  index = [values.get((x+dx, y+dy), default) for dy, dx in grid]\n  return algorithm[int(''.join(index), 2)]\n\nfor i in range(50):\n  default = algorithm[0] if i%2 else '0'\n  data = {(x,y): enhance(x, y, data, default) for x, y in adj(data)}\n  if i in (1, 49): print(sum(p=='1' for p in data.values()))"
+  },
+  {
+    "day": 21,
+    "strategy": "MemoizedRecursion",
+    "part1": "pos1, pos2 = [int(x.split()[-1]) for x in open(0)]\n\ndef play1(pos1, pos2, score1=0, score2=0, i=0):\n    if score2 >= 1000: return i*score1\n    pos1 = (pos1 + 3*i+6) % 10 or 10\n    return play1(pos2, pos1, score2, score1+pos1, i+3)\n\nfrom functools import cache\n@cache\ndef play2(pos1, pos2, score1=0, score2=0):\n    if score2 >= 21: return 0, 1\n\n    wins1, wins2 = 0, 0\n    for move, n in (3,1),(4,3),(5,6),(6,7),(7,6),(8,3),(9,1):\n        pos1_ = (pos1 + move) % 10 or 10\n        w2, w1 = play2(pos2, pos1_, score2, score1 + pos1_)\n        wins1, wins2 = wins1 + n*w1, wins2 + n*w2\n    return wins1, wins2\n\nprint(play1(pos1, pos2), max(play2(pos1, pos2)))"
+  },
+  {
+    "day": 22,
+    "strategy": "GraphTraversal",
+    "part1": "import collections as c, re\n\ndef intersect(x,X,y,Y,z,Z, u,U,v,V,w,W):\n    x = max(x, u); y = max(y, v); z = max(z, w)\n    X = min(X, U); Y = min(Y, V); Z = min(Z, W)\n    if x <= X and y <= Y and z <= Z:\n        return x, X, y, Y, z, Z\n\ndef size(x,X,y,Y,z,Z):\n    return (X-x+1) * (Y-y+1) * (Z-z+1)\n\ncubes = c.defaultdict(int)\nfor state, new in map(str.split, open(0)):\n    new = *map(int, re.findall(r'-?\\d+', new)),\n\n    for old in cubes.copy():\n        inter = intersect(*new, *old)\n        if inter: cubes[inter] -= cubes[old]\n\n    if state == \"on\": cubes[new] = 1\n\nprint(sum(size(*c)*v for c,v in cubes.items()))"
+  },
+  {
+    "day": 24,
+    "strategy": "None",
+    "part1": "def solve(inp, puzzle_input):\n    cmds = [line.split() for line in puzzle_input.splitlines()]\n\n    stack = []\n    for i in range(14):\n        div, chk, add = map(int, [cmds[i * 18 + x][-1] for x in [4, 5, 15]])\n        if div == 1:\n            stack.append((i, add))\n        elif div == 26:\n            j, add = stack.pop()\n            inp[i] = inp[j] + add + chk\n            if inp[i] > 9:\n                inp[j] -= inp[i] - 9\n                inp[i] = 9\n            if inp[i] < 1:\n                inp[j] += 1 - inp[i]\n                inp[i] = 1\n\n    return \"\".join(map(str, inp))\n\n\nif __name__ == \"__main__\":\n    with open(\"input/24.txt\") as fh:\n        data = fh.read()\n    print(\"Part1:\", solve([9] * 14, data))\n    print(\"Part2:\", solve([1] * 14, data))"
+  },
+  {
+    "day": 25,
+    "strategy": "None",
+    "part1": "m = [a.strip() for a in open(0)]\nh, w = len(m), len(m[0])\n\na = {(r,c): m[r][c] for r in range(h)\n                    for c in range(w)\n                    if m[r][c] != '.'}\n\nfor t in range(1000):\n    def move(new, x): return {new(*pos) if\n        new(*pos) not in a and fish==x else\n        pos:fish for pos,fish in a.items()}\n\n    b = a.copy()\n    a = move(lambda r,c: (r, (c+1)%w), '>')\n    a = move(lambda r,c: ((r+1)%h, c), 'v')\n\n    if a == b: print(t+1); break"
+  }
+]

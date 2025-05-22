@@ -1,0 +1,102 @@
+[
+  {
+    "day": 1,
+    "part1": "def product_of_two_numbers_that_sum_to(list_of_numbers, value_they_have_to_sum_to, how_many_numbers_to_sum):\n    if how_many_numbers_to_sum == 0:\n        return 1\n    if how_many_numbers_to_sum == 1:\n        if value_they_have_to_sum_to in list_of_numbers:\n            return value_they_have_to_sum_to\n        else:\n            return 0\n\n\n    for number in list_of_numbers:\n        complement = value_they_have_to_sum_to - number\n        product = product_of_two_numbers_that_sum_to(list_of_numbers, complement, how_many_numbers_to_sum - 1)\n        if product > 0:\n            return number * product\n    return 0\n\n\ndef day_01():\n    file = open('input.txt', 'r')\n\n    expenses = {}\n\n    for line in file:\n        expenses[int(line)] = True\n    \n    #Part 1\n    print(product_of_two_numbers_that_sum_to(expenses, 2020, 2))\n    #Part 2\n    print(product_of_two_numbers_that_sum_to(expenses, 2020, 3))\n\n\nday_01()"
+  },
+  {
+    "day": 2,
+    "part1": "from collections import namedtuple\nEntry = namedtuple(\"Entry\", \"low high c pw\")\n\ndata = []\nfor line in open(\"data02.txt\"):\n    allowed, c, pw = line.split()\n    low, high = map(int, allowed.split('-'))\n    data.append(Entry(low, high, c[0], pw))\n\ndef valid_1(e): return e.low <= e.pw.count(e.c) <= e.high\ndef valid_2(e): return (e.pw[e.low-1]==e.c) ^ (e.pw[e.high-1]==e.c)\n\nprint(\"Part 1:\", sum(map(valid_1, data)), \"valid passwords.\")\nprint(\"Part 2:\", sum(map(valid_2, data)), \"valid passwords.\")"
+  },
+  {
+    "day": 3,
+    "part1": "with open('input/day03', 'r') as f:\n    data = f.readlines()\n\n\ndef count_trees(right, down):\n    treecount = 0\n    for i in range(0, len(data), down):\n        if data[i][right * i % len(data[i].strip())] == '#':\n            treecount += 1\n    return treecount\n\n\nprint(f'Part 1: {count_trees(3,1)}')\n\nprint(f'Part 2: {count_trees(1,1) * count_trees(3,1) * count_trees(5,1) * count_trees(7,1) * count_trees(1,2)}')"
+  },
+  {
+    "day": 4,
+    "part1": "lines = open(day_04_path).read().split('\\n\\n')\npassports = [ dict( x.split(':') for x in line.split() ) for line in lines ]"
+  },
+  {
+    "day": 5,
+    "part1": "trans = str.maketrans('FBRL', '0110')\ndata = [int(line.translate(trans), 2) for line in raw.splitlines()]\n\ndef part_one():\n    return max(data)\n\ndef part_two():\n    l = len(data) + 1\n    return l * (l - 1) // 2 + l * min(data) - sum(data)"
+  },
+  {
+    "day": 6,
+    "part1": "data = [list(map(set, group.splitlines())) for group in raw.split('\\n\\n')]\n\ndef combine_with(func):\n    return sum(len(reduce(func, group)) for group in data)  # functools.reduce\n\ndef part_one():\n    return combine_with(set.union)\n\ndef part_two():\n    return combine_with(set.intersection)"
+  },
+  {
+    "day": 7,
+    "part1": "from parse import *\n\nx = {search('{} bag', x)[0]: [*findall('{:d} {} bag', x)]\n        for x in open('input.txt')}\n\nt = 'shiny gold'\n\ndef f(c): return any(d==t or f(d) for _,d in x[c])\ndef g(c): return sum(n + n * g(d) for n,d in x[c])\n\nprint(sum(map(f, x)), g(t))"
+  },
+  {
+    "day": 8,
+    "part1": "instructions = []\nwith open('input.txt') as fp:\n  line = fp.readline()\n  while line:\n    tokens = line.strip().split()\n    instructions.append((tokens[0], int(tokens[1])))\n    line = fp.readline()\n\ndef execute(instrs):\n  hasLoop = False\n  visited = set()\n  ptr = acc = 0\n  while ptr < len(instrs):\n    op, value = instrs[ptr]\n    if ptr in visited:\n      hasLoop = True\n      break\n    visited.add(ptr)\n    if op == 'jmp':\n      ptr = ptr + value\n      continue\n    elif op == 'acc':\n      acc = acc + value\n    ptr = ptr + 1\n  return (acc, hasLoop)\n\nprint(f'Part 1\\n{execute(instructions)[0]}\\n')\n\nswapDict = {'nop':'jmp','jmp':'nop'}\nfor i, (op,value) in enumerate(instructions):\n  if op == 'nop' or op == 'jmp':\n    swappedOp = [(swapDict[op], value)]\n    newInstructions = instructions[:i] + swappedOp + instructions[i+1:]\n    accValue, hasLoop = execute(newInstructions)\n    if not hasLoop:\n      print(f'Part 2\\n{accValue}')"
+  },
+  {
+    "day": 9,
+    "part1": "from itertools import combinations\n\nfrom aocd import data\n\n\ndef part1(nums):\n    for idx, x in enumerate(nums[25:]):\n        if not any(a + b == x for (a, b) in combinations(nums[idx:idx + 25], 2)):\n            return x\n\n\ndef part2(x, nums):\n    for i in range(len(nums)):\n        for j in range(i + 2, len(nums)):\n            if s := sum(pre := nums[i:j]) == x:\n                return min(pre) + max(pre)\n            elif s > x:\n                break\n\n\nnums = tuple(map(int, data.splitlines()))\n\nprint(f'part1: {(val := part1(nums))}')\n\n\nprint(f'part2: {part2(val, nums)}')"
+  },
+  {
+    "day": 10,
+    "part1": "def part_2(adapters):\n    adapters.append(0)\n    adapters.sort()\n    possibilities = {adapters[-1]: 1}\n    for a in reversed(adapters[:-1]):\n        possibilities[a] = sum(possibilities.get(x, 0) for x in (a+1, a+2, a+3))\n    return possibilities[0]"
+  },
+  {
+    "day": 11,
+    "part1": "P = {(x,y):1\n     for x,Y in enumerate([l.strip() for l in open('11/input.txt')])\n     for y,s in enumerate(Y) if s == 'L'}\n\ndef solve(P, 𝝆=[1], 𝝉=3):\n    Δ = [-1,0,1]\n    N = lambda x,y: sum(next((P[x+dx*r,y+dy*r] for r in 𝝆 if (x+dx*r,y+dy*r) in P), 0)\n                        for dx in Δ for dy in Δ)\n\n    while True:\n        Q = { p: N(*p) < 𝝉+2 if P[p] else N(*p) == 0 for p in P }\n        if P == Q:\n            return sum(P.values())\n        P = Q\n\nprint(solve(P), solve(P, range(1,101), 4))"
+  },
+  {
+    "day": 12,
+    "part1": "def solve(I, r, s):\n    _,p = reduce(\n        lambda s,w: r[w[0]](*s,w[1]), I, s)\n    return int(abs(p.real) + abs(p.imag))\n\nI = [(l[0], int(l[1:]))\n     for l in stdin.readlines()]\n\nr1 = {\n    'N': lambda d,p,v: (d,p+1j*v),\n    'S': lambda d,p,v: (d,p-1j*v),\n    'E': lambda d,p,v: (d,p+v),\n    'W': lambda d,p,v: (d,p-v),\n    'F': lambda d,p,v: (d,p+d*v),\n    'L': lambda d,p,v: (d*pow(1j, v//90),p),\n    'R': lambda d,p,v: (d*pow(-1j, v//90),p)\n   }\n\nr2 = {\n    'N': lambda d,p,v: (d+1j*v,p),\n    'S': lambda d,p,v: (d-1j*v,p),\n    'E': lambda d,p,v: (d+v,p),\n    'W': lambda d,p,v: (d-v,p),\n    'F': lambda d,p,v: (d,p+d*v),\n    'L': lambda d,p,v: (d*pow(1j, v//90),p),\n    'R': lambda d,p,v: (d*pow(-1j, v//90),p)\n   }\n\nprint (solve(I, r1, (1,0)),\n       solve(I, r2, (10+1j,0)))"
+  },
+  {
+    "day": 13,
+    "part1": "def solve_2(data):\n    data = [(i, int(bus_id)) for i, bus_id in enumerate(data[1].split(',')) if bus_id != 'x']\n    jump = data[0][1]\n    time_stamp = 0\n    for delta, bus_id in data[1:]:\n        while (time_stamp + delta) % bus_id != 0:\n            time_stamp += jump\n        jump *= bus_id\n    return time_stamp"
+  },
+  {
+    "day": 14,
+    "part1": "import fileinput\n\n\ndef write(memory, mask, address, value):\n    if \"X\" in mask:\n        i = mask.index(\"X\")\n        write(memory, mask[:i] + \"0\" + mask[i+1:], address, value)\n        write(memory, mask[:i] + \"1\" + mask[i+1:], address, value)\n    else:\n        memory[int(mask, 2) | address] = value\n\n\nm1 = {}\nm2 = {}\nmask = None\n\nfor line in fileinput.input():\n    key, value = line.strip().split(\" = \")\n    if key == \"mask\":\n        mask = value\n    else:\n        address = int(key[4:-1])\n        value = int(value)\n\n        m1[address] = value \\\n            & int(mask.replace(\"1\", \"0\").replace(\"X\", \"1\"), 2) \\\n            | int(mask.replace(\"X\", \"0\"), 2)\n\n        address &= int(mask.replace(\"0\", \"1\").replace(\"X\", \"0\"), 2)\n        write(m2, mask, address, value)\n\nprint(sum(m1.values()))\nprint(sum(m2.values()))"
+  },
+  {
+    "day": 15,
+    "part1": "def solution(numbers, until=2020):\n    memory = {n: i + 1 for i, n in enumerate(numbers[:-1])}\n\n    for i in range(len(numbers), until):\n        numbers.append(i - memory.get(numbers[-1], i))\n        memory[numbers[-2]] = i\n\n    return numbers[-1]\n\n\nnumbers = [1,2,16,19,18,0]\nprint(f\"Solution part 1: {solution(numbers)}\")\nprint(f\"Solution part 2: {solution(numbers, 30000000)}\")"
+  },
+  {
+    "day": 16,
+    "part1": "def ticket_translation_1():\n    input = read_and_load_input(\"DAY16\")\n    valid_seq = set()\n    rules = True\n    nearby = False\n    solution = 0\n\n    for line in input:\n        if rules:\n            seq = re.findall('\\d+', line)\n            round = 0\n            while round < 3 and len(seq) > 0:\n                for _ in range(int(seq[round]),int(seq[round +1]) + 1):\n                    valid_seq.add(_)\n                round += 2\n            sorted(valid_seq)\n\n        elif nearby:\n            numbers = line.split(\",\")\n            for number in numbers:\n                if int(number) not in valid_seq:\n                    solution += int(number)\n\n        if len(line) == 0:\n            rules = False\n\n        if line.startswith(\"nearby\"):\n            nearby = True\n    return solution"
+  },
+  {
+    "day": 17,
+    "part1": "from itertools import product\n\nfor p in [1, 2]:\n  g = {(x,y) + (0,) * p for x,l in enumerate(open('17'))\n                        for y,c in enumerate(l) if c == '#'}\n    \n  def a(c):\n    n = len(g & set(product(*[range(a-1, a+2) for a in c])))\n    return c in g and n == 4 or n == 3\n    \n  for r in range(6):\n    g = set(filter(a, product(range(-r-1, r+8), repeat=2+p)))\n\n  print(len(g))"
+  },
+  {
+    "day": 18,
+    "part1": "class T:\n    def __init__(self, v):\n        self.v = v\n    def __add__(self, other):\n        return T(self.v + other.v)\n    def __sub__(self, other):\n        return T(self.v * other.v)\n    def __mul__(self, other):\n        return T(self.v + other.v)\n\ndef main():\n    part2 = True\n    with open(\"input_data.txt\") as f:\n        inp = f.read()\n    # with open(\"example_input.txt\") as f:\n    #     inp = f.read()\n\n    lines = [line for line in inp.split(\"\\n\") if line]\n    t = 0\n    for line in lines:\n        for d in range(10):\n            line = line.replace(f\"{d}\", f\"T({d})\")\n        line = line.replace(\"*\", \"-\")\n        if part2:\n            line = line.replace(\"+\", \"*\")\n        t += eval(line, {\"T\": T}).v\n    print(t)\n\nif __name__ == '__main__':\n    main()"
+  },
+  {
+    "day": 19,
+    "part1": "# given string s and list of rules seq is there a way to produce s using seq?\ndef test(s,seq):\n    if s == '' or seq == []:\n        return s == '' and seq == [] # if both are empty, True. If only one, False.\n    \n    r = rules[seq[0]]\n    if '\"' in r:\n        if s[0] in r:\n            return test(s[1:], seq[1:]) # strip first character\n        else:\n            return False # wrong first character\n    else:\n        return any(test(s, t + seq[1:]) for t in r) # expand first term"
+  },
+  {
+    "day": 20,
+    "part1": "import numpy as np\nfrom scipy.ndimage import convolve\n\nT = [lambda x:x[:],\n     lambda x:x.T[::-1],\n     lambda x:x[::-1,::-1],\n     lambda x:x[::-1].T,\n     lambda x:x[::-1],\n     lambda x:x.T,\n     lambda x:x[:,::-1],\n     lambda x:x[::-1,::-1].T]\n\nmodel=np.array([[1,2],[3,4]])\nref = {tuple(tr(model).flat):k for k,tr in enumerate(T)}\nTmul = np.array([[ref[tuple(tb(ta(model)).flat)] for tb in T] for ta in T])\nTinv = np.argwhere(Tmul==0)[:,1]\n\ndef parse(photo):\n    photo=photo.replace(\"#\",\"1\").replace(\".\",\"0\")\n    header,*pixels=photo.split(\"\\n\")\n    id_=int(header[5:-1])\n    pixels=np.array([list(p) for p in pixels])\n    edges=[int(\"\".join(tr(pixels)[0]),2) for tr in T]\n    return id_,pixels.astype(int),edges\n\ndef populate(ps,links,i_dest0,trans0,i_src0):\n    for dir_,index_diff in enumerate([-12,1,12,-1]):\n        edge_out0=Tmul[trans0,dir_]\n        i_src1,edge_match1=links[i_src0,edge_out0]\n        i_dest1=i_dest0+index_diff\n        if i_src1>-1 and -1<i_dest1<len(ps) and ps[i_dest1][0]==-1:\n            trans_fit1=Tmul[edge_match1,Tinv[(edge_out0+4)%8]]\n            trans1=Tmul[trans_fit1,trans0]\n            ps[i_dest1]=trans1,i_src1\n            populate(ps,links,i_dest1,trans1,i_src1)\n\ndef answers(raw):\n    ids,pixels,edges=map(np.array,zip(*map(parse,raw.split(\"\\n\\n\"))))\n    L=len(edges)\n\n    ms=np.argwhere(edges[:,:,None,None]==edges)\n    ms=ms[ms[:,0]!=ms[:,2]]\n    links=np.full((L,8,2),-1)\n    links[tuple(ms[:,:2].T)]=ms[:,2:]\n\n    ps=np.full((2*L,2),-1)\n    ps[L]=0,0\n    populate(ps,links,L,0,0)\n    ps=ps[ps[:,0]!=-1]\n\n    yield np.prod(ids[ps[[0,11,-12,-1],1]],dtype=np.int64)\n\n    tr_pixels=[T[tr](pixels[i_src])[1:-1,1:-1] for tr,i_src in ps]\n    full_image=np.reshape(tr_pixels,(12,12,8,8))\n    full_image=np.moveaxis(full_image,2,1).reshape(96,96)\n    kernel=[\"                  #  \",\n            \"#    ##    ##    ### \",\n            \" #  #  #  #  #  #    \"]\n    kernel=(np.array([list(row) for row in kernel])==\"#\").astype(int)\n    N=kernel.sum()\n    matches=[convolve(full_image,tr(kernel),mode=\"constant\")==N for tr in T]\n    \n    yield np.sum(full_image)-np.sum(matches)*N"
+  },
+  {
+    "day": 21,
+    "part1": "def parse(r):\n    f,a=r[:-1].split(\" (contains\")\n    a=a.replace(\" \",\"\").split(\",\")\n    return set(f.split()),set(a)\n\ndef answers(raw):\n    fa=list(zip(*(parse(r) for r in raw.split(\"\\n\"))))\n    all_ings,all_alls=(set.union(*x) for x in fa)\n    uniques={key:set.intersection(*(f for f,a in zip(*fa) if key in a))\\\n             for key in all_alls}\n\n    free_ai=[]\n    while uniques:\n        kr,rv=next((k,v) for k,v in uniques.items() if len(v)==1)\n        free_ai.append((kr,list(uniques.pop(kr))[0]))\n        for v in uniques.values(): v-=rv\n\n    _,free_ings=zip(*sorted(free_ai))\n    dang_ings=all_ings-set(free_ings)\n\n    yield sum(sum(1 for ing in food if ing in dang_ings) for food in fa[0])\n    yield \",\".join(free_ings)"
+  },
+  {
+    "day": 22,
+    "part1": "import sys\nfrom math import prod\n\n\n# Kudos to https://github.com/hltk/adventofcode/blob/main/2020/22.py\ndef game(player1, player2, recursive):\n    seen = set()\n\n    while player1 and player2:\n        if (state := (tuple(player1), tuple(player2))) in seen:\n            return True, player1\n        seen.add(state)\n\n        (card1, *player1), (card2, *player2) = player1, player2\n\n        if recursive and len(player1) >= card1 and len(player2) >= card2:\n            player1win = game(\n                player1[:card1],\n                player2[:card2],\n                recursive\n            )[0]\n        else:\n            player1win = card1 > card2\n\n        if player1win:\n            player1.extend((card1, card2))\n        else:\n            player2.extend((card2, card1))\n\n    return (True, player1) if player1 else (False, player2)\n\n\nplayers = [\n    list(map(int, player.splitlines()[1:]))\n    for player in sys.stdin.read().split(\"\\n\\n\")\n]\n\nfor recursive in False, True:\n    player = game(*players, recursive)[1]\n    print(sum(map(prod, enumerate(reversed(player), 1))))"
+  },
+  {
+    "day": 23,
+    "part1": "def move(cups, moves, pad):\n    nex = [i + 1 for i in range(pad + 1)]\n    for i, label in enumerate(cups[:-1]):\n        nex[label] = cups[i + 1]\n    head = cups[0]\n    if pad > len(cups):\n        nex[-1] = head\n        nex[cups[-1]] = max(cups) + 1\n    else:\n        nex[cups[-1]] = head\n\n    for i in range(moves):\n        rem = nex[head]\n        nex[head] = nex[nex[nex[rem]]]\n        allrem = rem, nex[rem], nex[nex[rem]]\n\n        dest = head - 1 if head > 1 else pad\n        while dest in allrem:\n            dest = pad if dest == 1 else dest - 1\n\n        nex[nex[nex[rem]]] = nex[dest]\n        nex[dest] = rem\n\n        head = nex[head]\n\n    cup = nex[1]\n    while cup != 1:\n        yield cup\n        cup = nex[cup]\n\ncups = list(map(int, '925176834'))\nprint(''.join(map(str, move(cups, 100, len(cups)))))\nm = move(cups, 10000000, 1000000)\nprint(next(m) * next(m))"
+  },
+  {
+    "day": 24,
+    "part1": "import numpy as np\nfrom scipy.ndimage import convolve\nfrom collections import Counter\n\nT=dict(nw=(-1,-1),ne=(-1,0),w=(0,-1),e=(0,1),sw=(1,0),se=(1,1))\nkernel=1-np.eye(3)[::-1]\n\ndef parse(path):\n    while path:\n        yield np.array(T.get(d:=path.pop(0)) or T.get(d+path.pop(0)))\n\ndef answers(raw):\n    data=Counter([tuple(sum(parse(list(r)))) for r in raw.split(\"\\n\")])\n    coords=np.array([k for k,v in data.items() if v%2]).T\n    yield len(coords[0])\n\n    init=np.zeros(np.ptp(coords,axis=1)+1,dtype=int)\n    init[tuple(coords-np.min(coords,axis=1,keepdims=True))]=1\n\n    N=100\n    black_tiles=np.pad(init,N)\n    for _ in range(N):\n        nbs=convolve(black_tiles,kernel,int,mode=\"constant\")\n        black_tiles[:]=black_tiles&(nbs==1) | (nbs==2)\n    yield np.sum(black_tiles)"
+  },
+  {
+    "day": 25,
+    "part1": "# Determine loop size from public key\n# ------------------------------------\n# Public key is a power of 7 (mod 20201227).\n# To calculate loop size we count how many times we can modulo divide by 7.\n# Because 20201227 is prime we can use the multiplicative inverse of 7 and\n# repeatedly *multiply* by that until we get to 7.\n# We can calculate the multiplicative inverse from Fermat's Little Theorem:\n# Multiplicative Inverse of a:  1/a  =  a^(n-2)  (mod n)\n\ndef solve(card_public_key, door_public_key):\n    u = pow(7, 20201225, 20201227)\n    x = card_public_key\n    card_loop_size = 1\n    while x != 7:\n        x = (x * u) % 20201227\n        card_loop_size += 1\n\n    print(f\"Part 1: {pow(door_public_key, card_loop_size, 20201227)}\")\n\n\nsolve(5764801, 17807724)"
+  }
+]

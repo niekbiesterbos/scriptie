@@ -1,0 +1,122 @@
+[
+  {
+    "day": 1,
+    "strategy": "None",
+    "part1": "def new_dir( current, turndir ):\n    d = { \"R\": { (1, 0): (0, 1), (-1, 0): (0, -1), (0, -1): (1, 0), (0, 1):(-1, 0) },\n        \"L\":  { (1, 0): (0, -1), (-1, 0): (0, 1), (0, -1): (-1, 0), (0, 1):(1, 0) } }\n    return d[ turndir ][ current ]\n\ndef solve( data ):\n    x, y  = 0, 0\n    current = ( 1, 0 )\n    v = set()\n    v.add(str(x)+\",\"+str(y))\n    for delta in data:\n        turndir = delta[0]\n        dist = int( delta[1:])\n        current = new_dir( current, turndir )\n        for i in range( 1, dist + 1 ):\n            x += 1*current[0]\n            y += 1*current[1]\n            xstr = str(x)+\",\"+str(y)\n            if xstr in v:\n                return abs(x)+abs(y)\n            else:\n                v.add(xstr)"
+  },
+  {
+    "day": 2,
+    "strategy": "None",
+    "part1": "import sys\n\ndef triangle(n):\n    # Not really a triangle number because each new row adds 2 not 1\n    return n * n\n\nRANGE = 2\nN_KEYS = triangle(RANGE) * 2 + RANGE * 2 + 1\n\npos_x = -2\npos_y = 0\n\ndef valid(n, other):\n    return abs(n) <= RANGE and abs(other) <= RANGE - abs(n)\n\nfor line in sys.stdin:\n    for ch in line:\n        if ch == \"U\":\n            if valid(pos_y - 1, pos_x):\n                pos_y -= 1\n        elif ch == \"D\":\n            if valid(pos_y + 1, pos_x):\n                pos_y += 1\n        elif ch == \"L\":\n            if valid(pos_x - 1, pos_y):\n                pos_x -= 1\n        elif ch == \"R\":\n            if valid(pos_x + 1, pos_y):\n                pos_x += 1\n\n    if pos_y <= 0:\n        num = triangle(RANGE + pos_y)\n    else:\n        num = N_KEYS - triangle(RANGE - pos_y + 1)\n\n    num += pos_x + RANGE + 1 - abs(pos_y)\n\n    print(hex(num)[2:], end='')\n\nprint()"
+  },
+  {
+    "day": 3,
+    "strategy": "None",
+    "part1": "print(sum(\n    sum(sides) > 2 * max(sides)\n    for sides in (\n        list(map(int, line.split())) for line in open(\"input.txt\")\n    )\n))"
+  },
+  {
+    "day": 4,
+    "strategy": "GraphTraversal",
+    "part1": "import re, collections, string\n\ndef caesar_cipher(n):\n    az = string.ascii_lowercase\n    x = n % len(az)\n    return str.maketrans(az, az[x:] + az[:x])\n\nans1 = 0\nregex = r'([a-z-]+)(\\d+)\\[(\\w+)\\]'\nwith open('04.txt') as fp:\n    for code, sid, checksum in re.findall(regex, fp.read()):\n        sid = int(sid)\n        letters = ''.join(c for c in code if c in string.ascii_lowercase)\n        tops = [(-n,c) for c,n in collections.Counter(letters).most_common()]\n        ranked = ''.join(c for n,c in sorted(tops))\n        if ranked.startswith(checksum):\n            ans1 += sid\n            decoded = code.translate(caesar_cipher(sid))\n            if 'north' in decoded:\n                print(decoded, sid)\n\nprint(ans1)"
+  },
+  {
+    "day": 5,
+    "strategy": "None",
+    "part1": "#!/usr/bin/python3\n\nimport hashlib\n\ndef find_code(door_id):\n    s = [None] * 8\n    i = 0\n    while None in s:\n        m = hashlib.md5(door_id + str(i).encode('utf-8')).hexdigest()\n        if m.startswith('00000'):\n            print(\"{}: {}\".format(door_id + str(i).encode('utf-8'), m))\n            location = int(m[5], 16)\n            if location < 8 and s[location] is None:\n                s[location] = m[6]\n        i += 1\n    return ''.join(s)\n\nsample = 'abc'.encode('utf-8')\nprint('Sample: {}'.format(find_code(sample)))\n\nprint('\\n')\n\ndoor_id = 'wtnhxymk'.encode('utf-8')\nprint('Challenge: {}'.format(find_code(door_id)))"
+  },
+  {
+    "day": 6,
+    "strategy": "GreedyAlgorithm",
+    "part1": "def main():\n    text_file = open(destination, \"r\")\n    codeList = [x for x in text_file.read().split()]\n    text_file.close()\n    codeListB = [x for x in list(zip(*codeList))]\n    for x in codeListB:\n        decodedList = sorted(list(([y for y in x])))\n        common = min(set(decodedList), key=decodedList.count)\n        print(chr(common))\nmain()"
+  },
+  {
+    "day": 7,
+    "strategy": "None",
+    "part1": "import re\ndef abba(x):\n    return any(a == d and b == c and a != b for a, b, c, d in zip(x, x[1:], x[2:], x[3:]))\nlines = [re.split(r'\\[([^\\]]+)\\]', line) for line in open('input.txt')]\nparts = [(' '.join(p[::2]), ' '.join(p[1::2])) for p in lines]\nprint('Answer #1:', sum(abba(sn) and not(abba(hn)) for sn, hn in parts))\nprint('Answer #2:', sum(any(a == c and a != b and b+a+b in hn for a, b, c in zip(sn, sn[1:], sn[2:])) for sn, hn in parts))"
+  },
+  {
+    "day": 8,
+    "strategy": "DynamicProgramming",
+    "part1": "import re, numpy as np\n\ndef display(s):\n    print('\\n'.join(''.join('X' if p else ' '  for p in row) for row in s))\n\ndef run(width, height, lines):\n    s = np.zeros((height, width), dtype=bool)\n    for line in lines:\n        p = re.split(r'[ =]', line)\n        if p[0] == 'rect':\n            w, h = map(int, p[1].split('x'))\n            s[:h, :w] = True\n        elif p[0] == 'rotate':\n            if p[1] == 'row':\n                cy, n = int(p[3]), int(p[5])\n                s[cy] = np.roll(s[cy], n)\n            else:\n                cx, n = int(p[3]), int(p[5])\n                s[:,cx] = np.roll(s[:,cx], n)\n    return s\n\nanswer = run(50, 6, open('input.txt'))\nprint('Answer #1:', np.sum(answer))\nprint('Answer #2:')\ndisplay(answer)"
+  },
+  {
+    "day": 9,
+    "strategy": "Recursion",
+    "part1": "from itertools import takewhile, islice\n\ndef decompress(data, recurse):\n    answer = 0\n    chars = iter(data)\n    for c in chars:\n        if c == '(':\n            n, m = map(int, [''.join(takewhile(lambda c: c not in 'x)', chars)) for _ in (0, 1)])\n            s = ''.join(islice(chars, n))\n            answer += (decompress(s, recurse) if recurse else len(s))*m\n        else:\n            answer += 1\n    return answer\n\ndata = open('input.txt').read()\nprint('Answer #1:', decompress(data, False))\nprint('Answer #2:', decompress(data, True))"
+  },
+  {
+    "day": 10,
+    "strategy": "GreedyAlgorithm",
+    "part1": "from re import compile\nfrom operator import mul, itemgetter\nfrom functools import reduce\nfrom itertools import tee, filterfalse, chain\n\nvalue = compile('value (\\d+) goes to (bot \\d+)')\nbotcmd = compile('(bot \\d+) gives low to ((?:output|bot) \\d+) and high to ((?:output|bot) \\d+)')\n\ndef parseLines(lines, regex):\n    return [regex.match(line).groups() for line in lines]\n\ndef partition(pred, iterable):\n    t1, t2 = tee(iterable)\n    return filterfalse(pred, t1), filter(pred, t2)\n\ndef defineBot(bot, low, high, bins):\n    def dist_a(a):\n        def dist_b(b):\n            h, l        = max(a, b), min(a, b)\n            bins[high]  = bins[high](h)\n            bins[low]   = bins[low](l)          \n            return (h, l)\n        return dist_b\n    return dist_a\n\ndef botEval(inputs, cmds, bins):\n    for bot, low, high in cmds:\n        bins[bot] = defineBot(bot, low, high, bins) \n\n    for val, bot in inputs:\n        bins[bot] = bins[bot](int(val))\n\ndef getOutputs(bins):\n    outputBins = ((k, v) for k, v in bins.items() if k.startswith(\"output\"))\n    return [v for k, v in sorted(outputBins, key=lambda x: int(x[0].split(\" \")[-1]))]\n\ndef day10(input):\n    inputs, cmds = partition(lambda s: s.startswith(\"bot\"), input)\n    inputs, cmds = parseLines(inputs, value), parseLines(cmds, botcmd)\n\n    bins = {x:lambda y: y for x in chain.from_iterable(cmds)} \n    botEval(inputs, cmds, bins)\n\n    outputs = getOutputs(bins)\n    return {v:k for k, v in bins.items()}[(61, 17)], reduce(mul, outputs[:3], 1)\n\ninput = open(\"../input.txt\").read()\ninput = [x.strip() for x in input.split(\"\\n\")]\nprint(day10(input))"
+  },
+  {
+    "day": 11,
+    "strategy": "GraphTraversal",
+    "part1": "from collections import deque"
+  },
+  {
+    "day": 12,
+    "strategy": "None",
+    "part1": "with open('input.txt') as fd:\n    code = fd.read().splitlines()\n\nclass BunnyInterpreter:\n\n    def __init__(self, instructions, a=0, b=0, c=0, d=0):\n        self.a = a\n        self.b = b\n        self.c = c\n        self.d = d\n        self.instructions = instructions\n        self.pointer = 0\n\n    def grab(self, x):\n        if x in 'abcd':\n            return getattr(self, x)\n        return int(x)\n\n    def cpy(self, source, dest):\n        setattr(self, dest, self.grab(source))\n\n    def inc(self, register):\n        temp = getattr(self, register)\n        setattr(self, register, temp+1)\n\n    def dec(self, register):\n        temp = getattr(self, register)\n        setattr(self, register, temp-1)\n\n    def jnz(self, c, dist):\n        if self.grab(c) != 0:\n            self.pointer += int(dist)\n        else:\n            self.pointer += 1\n\n    def parse(self, ins):\n        op, *args = ins.split()\n        getattr(self, op)(*args)\n        if op != 'jnz':\n            self.pointer += 1\n\n    def run(self):\n        while self.pointer < len(self.instructions):\n            self.parse(self.instructions[self.pointer])\n\nb = BunnyInterpreter(code)\nc = BunnyInterpreter(code, c=1)\nb.run()\nc.run()\nprint('star one: {}'.format(b.a))\nprint('star two: {}'.format(c.a))"
+  },
+  {
+    "day": 13,
+    "strategy": "None",
+    "part1": "import heapq\nimport os\n\nclass State(object):\n    \"\"\"State for a step in the maze.\"\"\"\n    GOAL = None\n    FAV_NUM = None\n    MAX_STEPS = None\n\n    def __init__(self, x, y, parents=None):\n        self.x = x\n        self.y = y\n        if parents is None:\n            self.parents = []\n        else:\n            self.parents = parents\n        self.priority = priority(x, y, self.GOAL)\n\n    def __str__(self):\n        return 'State: %s, %s' % (self.x, self.y)\n\n    def __repr__(self):\n        return 'State(%s, %s)' % (self.x, self.y)\n\n    def __eq__(self, other):\n        return hash(self) == hash(other)\n\n    def __hash__(self):\n        return hash((self.x, self.y))\n\n    def next_state(self):\n        \"\"\"Generate a child state from here.\"\"\"\n        moves = [(0, 1), (0, -1), (1, 0), (-1, 0)]\n        for move in moves:\n            x = self.x + move[0]\n            y = self.y + move[1]\n            if x < 0 or y < 0:\n                continue\n            if is_open(x, y, self.FAV_NUM):\n                if self.MAX_STEPS is None or len(self.parents) < self.MAX_STEPS:\n                    yield State(x, y, parents=self.parents + [self])\n\n\ndef priority(x, y, goal):\n    \"\"\"Priority for a State.\"\"\"\n    return abs(goal[0] - x) + abs(goal[1] - y)\n\n\ndef is_open(x, y, fav_num):\n    \"\"\"Is this a wall?\"\"\"\n    number = x * x + 3 * x + 2 * x * y + y + y * y + fav_num\n    return bin(number).count('1') % 2 == 0\n\n\ndef solve(fav_num, goal, max_steps=None):\n    State.GOAL = goal\n    State.FAV_NUM = fav_num\n    State.MAX_STEPS = max_steps\n\n    # Search\n    queue = []\n    starting_state = State(1, 1)\n    heapq.heappush(queue, (starting_state.priority, starting_state))\n    ever_seen = set()\n    ever_seen.add(starting_state)\n    steps = 0\n    max_depth = 0\n    while queue:\n        priority, item = heapq.heappop(queue)\n        if len(item.parents) > max_depth:\n            max_depth = len(item.parents)\n            # print('max depth', max_depth, 'states', steps, 'len q', len(queue))\n        if (item.x, item.y) == goal:\n            print('The number of steps to', goal, 'is', len(item.parents))\n            return len(item.parents)\n        ever_seen.add(item)\n        for new_item in item.next_state():\n            if new_item not in ever_seen:\n                heapq.heappush(queue, (new_item.priority, new_item))\n        steps += 1\n\n    print('The number of states we can reach in', max_steps, 'steps is', len(ever_seen))\n    return None\n\n\nif __name__ == '__main__':\n    this_dir = os.path.dirname(__file__)\n    with open(os.path.join(this_dir, 'day13.input')) as f:\n        data = f.read()\n    data = int(data)\n    solve(data, goal=(31, 39))\n    solve(data, goal=(-1, -1), max_steps=50)"
+  },
+  {
+    "day": 14,
+    "strategy": "None",
+    "part1": "#!/bin/python3\n\nimport re\nimport hashlib\n\n\nSALT = 'ihaygndm'\nSALT_sample = 'abc'\nKEY_STRETCH = 2016"
+  },
+  {
+    "day": 15,
+    "strategy": "None",
+    "part1": "def d1(t): return (t+2) % 5 == 0\ndef d2(t): return (t+7) % 13 == 0\ndef d3(t): return (t+10) % 17 == 0\ndef d4(t): return (t+2) % 3 == 0\ndef d5(t): return (t+9) % 19 == 0\ndef d6(t): return (t+0) % 7 == 0\ndef d7(t): return (t+0) % 11 == 0\n\nt = 0\nwhile True:\n    if d1(t+1) and d2(t+2) and d3(t+3) and d4(t+4) and d5(t+5) and d6(t+6):\n        print(t)\n        break\n    t += 1\n    \nt = 0\nwhile True:\n    if d1(t+1) and d2(t+2) and d3(t+3) and d4(t+4) and d5(t+5) and d6(t+6) and d7(t+7):\n        print(t)\n        break\n    t += 1"
+  },
+  {
+    "day": 16,
+    "strategy": "Recursion",
+    "part1": "def next_str(s):\n    b = ''.join('0' if c=='1' else '1' for c in reversed(s))\n    return '{}0{}'.format(s, b)\n\ndef checksum(s):\n    l = []\n    for a, b in zip(s[::2], s[1::2]):\n        if a == b:\n            l.append('1')\n        else:\n            l.append('0')\n    if len(l) % 2 != 0:\n        return ''.join(l)\n    else:\n        return checksum(''.join(l))\n\n        \ndef gen(start, l):\n    while (len(start) < l):\n        start = next_str(start)\n    return start[:l]\n    \n\nstart = \"10010000000110000\"\nprint(checksum(gen(start, 272)))\nprint(checksum(gen(start, 35651584)))"
+  },
+  {
+    "day": 17,
+    "strategy": "GraphTraversal",
+    "part1": "from hashlib import md5\nfrom itertools import compress\n\ninput = \"hhhxzeay\"\nmoves = {\n    'U': lambda x, y: (x, y - 1),\n    'D': lambda x, y: (x, y + 1),\n    'L': lambda x, y: (x - 1, y),\n    'R': lambda x, y: (x + 1, y)\n}\n\ndef doors(path):\n    string = (input + ''.join(path)).encode('utf-8')\n    return (int(x, 16) > 10 for x in md5(string).hexdigest()[:4])\n\ndef bfs(start, goal):\n    queue = [(start, [start], [])]\n    while queue:\n        (x, y), path, dirs = queue.pop(0)\n        for dir in compress('UDLR', doors(dirs)):\n            next = moves[dir](x, y)\n            nx, ny = next\n            if not (0 <= nx < 4 and 0 <= ny < 4):\n                continue\n            elif next == goal:\n                yield dirs + [dir]\n            else:\n                queue.append((next, path + [next], dirs + [dir]))\n\ndef day17():\n    paths = list(bfs((0, 0), (3, 3)))\n    return ''.join(paths[0]), len(paths[-1])\n\nprint(day17())"
+  },
+  {
+    "day": 18,
+    "strategy": "None",
+    "part1": "rule110 = lambda: ((lambda input, automata: (\n    sum(r.count('.') for r, _ in zip(automata(input), range(40))),\n    sum(r.count('.') for r, _ in zip(automata(input), range(400000)))\n))(\n    sys.stdin.read(),\n    type('rule110', (object,), {\n        '__init__': lambda self, input: (setattr(self, 'input', input), None)[-1],\n        '__iter__': lambda self: self,\n        '__next__': lambda self: (self.input, setattr(self, 'input', ''.join('^' if ('.' + self.input + '.')[i-1:i+2] in {'^^.', '.^^', '^..', '..^'} else '.' for i in range(1, len(self.input)+1))))[0]\n    })\n))"
+  },
+  {
+    "day": 19,
+    "strategy": "None",
+    "part1": "#!/bin/python3\ndef solve_parttwo():\n    left = collections.deque()\n    right = collections.deque()\n    for i in range(1, ELF_COUNT+1):\n        if i < (ELF_COUNT // 2) + 1:\n            left.append(i)\n        else:\n            right.appendleft(i)\n\n    while left and right:\n        if len(left) > len(right):\n            left.pop()\n        else:\n            right.pop()\n\n        # rotate\n        right.appendleft(left.popleft())\n        left.append(right.pop())\n    return left[0] or right[0]"
+  },
+  {
+    "day": 20,
+    "strategy": "None",
+    "part1": "with open('input.txt') as fd:\n    data = fd.read()\n\ndef test_ip(n):\n    for start, end in data:\n        if start <= n <= end:\n            break\n    else:\n        if n < 2**32:\n            return True\n    return False\n\ndata = sorted([int(x), int(y)] for x,y in [z.split('-') for z in data.splitlines()])\n\ncandidates = [x[1]+1 for x in data]\n\nvalids = [c for c in candidates if test_ip(c)]\n\ntotal = 0\nfor ip in valids:\n    while test_ip(ip):\n        total += 1\n        ip += 1\n\nprint(valids[0])\nprint(total)"
+  },
+  {
+    "day": 21,
+    "strategy": "Recursion",
+    "part1": "import re\n\nSWAP = re.compile(\"swap position (\\d+) with position (\\d+)\")\nSWAP_LETTER = re.compile(\"swap letter ([a-z]) with letter ([a-z])\")\nREVERSE = re.compile(\"reverse positions (\\d+) through (\\d+)\")\nROTATE = re.compile(\"rotate (left|right) (\\d+) step\")\nMOVE = re.compile(\"move position (\\d+) to position (\\d+)\")\nROTATE_BASED = re.compile(\"rotate based on position of letter ([a-z])\")\n\n\ndef _swap(inp, p1, p2, rev=False):\n    p1, p2 = map(int, (p1, p2))\n    inp[p2], inp[p1] = inp[p1], inp[p2]\n    return inp\n\n\ndef _swap_letter(inp, p1, p2, rev=False):\n    p1 = inp.index(p1)\n    p2 = inp.index(p2)\n    return _swap(inp, p1, p2)\n\n\ndef _reverse(inp, p1, p2, rev=False):\n    p1, p2 = map(int, (p1, p2))\n    inp[p1:p2 + 1] = list(reversed(inp[p1:p2 + 1]))\n    return inp\n\n\ndef _rotate(inp, lr, p2, rev=False):\n    p2 = int(p2)\n    p2 = p2 % len(inp)\n\n    if rev:\n        if lr == \"left\":\n            lr = \"right\"\n        else:\n            lr = \"left\"\n\n    if lr == \"left\":\n        inp = inp[p2:] + inp[:p2]\n    else:\n        inp = inp[-p2:] + inp[:-p2]\n    return inp\n\n\ndef _move(inp, p1, p2, rev=False):\n    p1, p2 = map(int, (p1, p2))\n    if rev:\n        p1, p2 = p2, p1\n    val = inp[p1]\n    inp = inp[:p1] + inp[p1 + 1:]\n    inp.insert(p2, val)\n    return inp\n\n\ndef _rotate_based(inp, letter, rev=False):\n    if rev:\n        for i in range(1, len(inp) + 1):\n            tryval = _rotate(list(inp), \"left\", i)\n            if _rotate_based(tryval, letter) == inp:\n                return tryval\n        return None\n\n    pos = inp.index(letter)\n    if pos >= 4:\n        pos += 1\n    return _rotate(inp, \"right\", pos + 1)\n\n\nOP = {\n    SWAP: _swap,\n    SWAP_LETTER: _swap_letter,\n    REVERSE: _reverse,\n    ROTATE: _rotate,\n    MOVE: _move,\n    ROTATE_BASED: _rotate_based\n}\n\n\ndef solve_reverse(inp, seq_reversed):\n    inp = list(inp)\n    for s in seq_reversed:\n        for rx, cb in OP.items():\n            args = rx.findall(s)\n            if args:\n                inp = cb(inp, *(list(args[0]) + [True]))\n    return \"\".join(inp)\n\n\ndef solve(inp, seq):\n    inp = list(inp)\n    for s in seq:\n        for rx, cb in OP.items():\n            args = rx.findall(s)\n            if args:\n                inp = cb(inp, *args[0])\n    return \"\".join(inp)\n\n\nif __name__ == '__main__':\n    with open(\"data/21.txt\") as inp:\n        inp = list(inp)\n        print(\"\".join(map(str, solve(\"abcdefgh\", inp))))\n        print(\"\".join(map(str, solve_reverse(\"fbgdceah\", reversed(inp)))))"
+  },
+  {
+    "day": 22,
+    "strategy": "None",
+    "part1": "X = 34\nY = 30\nnodeBlocked = [[False for x in range(X)] for y in range(Y)]\n\nfor line in sys.stdin:\n    line = line.strip()\n    m = re.findall(r\"(\\d+)\", line)\n    if not m:\n        continue\n    x,y,size,use,avail,p = (int(i) for i in m)\n    if size > 120:\n        nodeBlocked[y][x] = True\n    if p < 10:\n        o = (y,x)\n\ndef mdist(a,b):\n    return abs(a[0] - b[0]) + abs(a[1] - b[1])\n\nclass Node:\n    def __init__(self, openNode, goalData):\n        self.o = openNode\n        self.g = goalData\n\n    def isGoal(self):\n        return self.g == (0,0)\n    def isFailure(self):\n        oy, ox = self.o\n        return nodeBlocked[oy][ox]\n\n    def neighbors(self):\n        oy, ox = self.o\n        for dy, dx in ((1,0), (-1,0), (0,1), (0,-1)):\n            if ox+dx < 0 or ox+dx >= X or oy+dy < 0 or oy+dy >= Y:\n                continue\n            if self.g == (oy+dy, ox+dx):\n                yield 1, Node(self.g, self.o)\n            else:\n                yield 1, Node((oy+dy, ox+dx), self.g)\n\n    def heuristic(self):\n        return mdist(self.o, self.g) + mdist(self.g, (0,0))\n\n    def __eq__(self, other):\n        return self.o == other.o and self.g == other.g\n    def __hash__(self):\n        return hash((self.o, self.g)) \n    def __repr__(self):\n        return str(self.o) + \" \" + str(self.g)\n\nstart = Node(o, (0, X-1))\nprint(astar.search(start)[0])"
+  },
+  {
+    "day": 24,
+    "strategy": "GraphTraversal",
+    "part1": "start_file = open('./aoc_day_24_input.txt')\ngrid = [list(line) for line in start_file.read().strip().splitlines()]\nlocations = {}\nlengths = {}\ndistances1 = []\ndistances2 = []\nmoves  = [(1, 0), (-1, 0), (0, 1), (0, -1)]\nfor r in range(len(grid)):\n    for c in range(len(grid[0])):\n        if grid[r][c].isdigit():\n            locations[int(grid[r][c])] = (r, c)\n\n\ndef can_move(r, c):\n    return 0 <= r < len(grid) and 0 <= c < len(grid[0]) and grid[r][c] in '.01234567'\n\n\nfor place, loc in locations.items():\n    paths = deque([[loc]])\n    seen = set()\n    seen.add(loc)\n    while paths:\n        curr_path = paths.popleft()\n        r, c = curr_path[-1]\n        if (r, c) in locations.values() and len(curr_path) > 1:\n            lengths[(place, int(grid[r][c]))] = len(curr_path) - 1\n            continue\n        for dr, dc in moves:\n            if can_move(r + dr, c + dc) and (r + dr, c + dc) not in seen:\n                paths.append(curr_path + [(r + dr, c + dc)])\n                seen.add((r + dr, c + dc))\n\n\nfor path in itertools.permutations(range(1, 8)):\n    path = (0,) + path + (0,)\n    distance = 0\n    for i in range(len(path) - 2):\n        distance += lengths[(path[i], path[i+1])]\n    distances1.append(distance)\n    distances2.append(distance + lengths[(path[-2], path[-1])])\n\nprint('Part1:', min(distances1))\nprint('Part2:', min(distances2))"
+  },
+  {
+    "day": 25,
+    "strategy": "None",
+    "part1": "with open('25.txt') as fp:\n    lines = fp.read().strip().splitlines()\n\ntransforms = {\n    'cpy': 'i +=1; {1} = {0}',\n    'inc': 'i +=1; {0} += 1',\n    'dec': 'i +=1; {0} -= 1',\n    'jnz': 'i += {1} if {0}!=0 else 1; continue',\n    'out': 'i += 1; yield({0})'\n}\n\n\nfor a in range(1000):\n    N = len(lines)\n    program = ['def solve():']\n    program += ['\\ti=a=b=c=d=0']\n    program += ['\\ta=%s' % a]\n    program += ['\\twhile 0 <= i < {N}:'.format_map(locals())]\n    for i, line in enumerate(lines):\n        ins, *args = line.split(' ')\n        code = transforms[ins].format(*args)\n        program += ['\\t\\tif i=={i}: {code};'.format(i=i, code=code)]\n    program = '\\n'.join(program)\n    exec(program)\n    g = solve()\n    x = 10\n    s = ''.join(str(next(g)) for _ in range(x*2))\n    if s.startswith('01'*x):\n        print(s)\n        print(a)\n        exit()"
+  }
+]

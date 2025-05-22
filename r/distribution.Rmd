@@ -1,0 +1,201 @@
+---
+title: "Code complexity per algorithmic strategy"
+author: "Niek Biesterbos"
+date: "2025-05-01"
+output: html_document
+---
+
+```{r prepare-df}
+library(tidyverse)
+library(jsonlite)
+library(janitor)
+
+# Load raw data as list
+data <- fromJSON("../data/solutions_with_metrics.json", simplifyVector = FALSE)
+
+# Extract relevant fields
+df <- purrr::map_dfr(data, function(sol) {
+  if (is.null(sol$algorithmicStrategies) || 
+      is.null(sol$maintainabilityIndex$mi) ||
+      is.null(sol$halsteadMetrics$total$volume) ||
+      is.null(sol$day)) {
+    return(NULL)
+  }
+
+  strategy <- sol$algorithmicStrategies[[1]]
+  mi <- sol$maintainabilityIndex$mi
+  halstead <- sol$halsteadMetrics$total$volume
+  day <- sol$day
+
+  cc_list <- sol$cyclomaticComplexity
+  if (!is.null(cc_list) && length(cc_list) > 0) {
+    cc_vals <- sapply(cc_list, function(f) f$complexity)
+    cc <- mean(cc_vals)
+  } else {
+    cc <- NA_real_
+  }
+
+  tibble(strategy = strategy, day = day, mi = mi, halstead = halstead, cc = cc)
+}) %>%
+  filter(!is.na(strategy), !is.na(mi), !is.na(halstead), !is.na(cc)) %>%
+  mutate(strategy = factor(strategy))
+```
+
+```{r size}
+df %>%
+  count(strategy, name = "n") %>%
+  arrange(desc(n)) %>%
+  knitr::kable(caption = "Number of valid observations per strategy")
+```
+
+```{r summary}
+## Summary per strategy
+df %>%
+  group_by(strategy) %>%
+  summarise(
+    n = n(),
+    mean_halstead = mean(halstead),
+    median_halstead = median(halstead),
+    sd_halstead = sd(halstead),
+    iqr_halstead = IQR(halstead),
+
+    mean_mi = mean(mi),
+    median_mi = median(mi),
+    sd_mi = sd(mi),
+    iqr_mi = IQR(mi),
+
+    mean_cc = mean(cc),
+    median_cc = median(cc),
+    sd_cc = sd(cc),
+    iqr_cc = IQR(cc),
+    .groups = "drop"
+  ) %>%
+  janitor::clean_names() %>%
+  knitr::kable(digits = 2, caption = "Summary statistics per strategy and metric")
+
+## Summary per day
+df %>%
+  group_by(day) %>%
+  summarise(
+    n = n(),
+    mean_halstead = mean(halstead),
+    median_halstead = median(halstead),
+    sd_halstead = sd(halstead),
+    iqr_halstead = IQR(halstead),
+
+    mean_mi = mean(mi),
+    median_mi = median(mi),
+    sd_mi = sd(mi),
+    iqr_mi = IQR(mi),
+
+    mean_cc = mean(cc),
+    median_cc = median(cc),
+    sd_cc = sd(cc),
+    iqr_cc = IQR(cc),
+    .groups = "drop"
+  ) %>%
+  janitor::clean_names() %>%
+  knitr::kable(digits = 2, caption = "Summary statistics per day and metric")
+
+```
+
+```{r distribution}
+# Halstead - density per strategy
+ggplot(df, aes(x = halstead, fill = strategy)) +
+  geom_density(alpha = 0.4) +
+  scale_x_log10() +
+  labs(title = "Halstead distribution per strategy", x = "Halstead volume (log10)") +
+  theme_minimal()
+
+ggsave("images/halstead_strategy_dist.jpg", width = 8, height = 5, dpi = 300)
+
+# Halstead - median per day
+df %>%
+  group_by(day) %>%
+  summarise(median_halstead = median(halstead)) %>%
+  ggplot(aes(x = day, y = median_halstead)) +
+  geom_line(color = "steelblue", linewidth = 1.2) +
+  geom_point() +
+  labs(title = "Median halstead volume per day",
+       x = "Puzzle day", y = "Median halstead volume") +
+  theme_minimal()
+
+ggsave("images/halstead_day_dist.jpg", width = 8, height = 5, dpi = 300)
+
+
+# CC - density per strategy
+ggplot(df, aes(x = cc, fill = strategy)) +
+  geom_density(alpha = 0.4) +
+  scale_x_log10() +
+  labs(title = "Cyclomatic complexity distribution per strategy", x = "Cyclomatic complexity (log10)") +
+  theme_minimal()
+
+ggsave("images/cc_strategy_dist.jpg", width = 8, height = 5, dpi = 300)
+
+# CC - median per day
+df %>%
+  group_by(day) %>%
+  summarise(median_cc = median(cc)) %>%
+  ggplot(aes(x = day, y = median_cc)) +
+  geom_line(color = "firebrick", linewidth = 1.2) +
+  geom_point() +
+  labs(title = "Median cyclomatic complexity per day",
+       x = "Puzzle day", y = "Median cyclomatic complexity") +
+  theme_minimal()
+
+ggsave("images/cc_day_dist.jpg", width = 8, height = 5, dpi = 300)
+
+
+# MI - density per strategy
+ggplot(df, aes(x = mi, fill = strategy)) +
+  geom_density(alpha = 0.4) +
+  labs(title = "Maintainability index distribution per strategy", x = "Maintainability index") +
+  theme_minimal()
+
+ggsave("images/mi_strategy_dist.jpg", width = 8, height = 5, dpi = 300)
+
+# MI - median per day
+df %>%
+  group_by(day) %>%
+  summarise(median_mi = median(mi)) %>%
+  ggplot(aes(x = day, y = median_mi)) +
+  geom_line(color = "darkgreen", linewidth = 1.2) +
+  geom_point() +
+  labs(title = "Median maintainability index per day",
+       x = "Puzzle day", y = "Median maintainability index") +
+  theme_minimal()
+
+ggsave("images/mi_day_dist.jpg", width = 8, height = 5, dpi = 300)
+
+```
+
+```{r annotation-accuracy}
+years <- 2015:2024
+correct <- c(21, 16, 20, 15, 11, 18, 19, 19, 20, 20)
+total <- c(25, 24, 25, 25, 15, 25, 24, 25, 25, 25)
+accuracy <- correct / total * 100
+
+df <- data.frame(
+  year = years,
+  accuracy = accuracy
+)
+
+# Plot
+ggplot(df, aes(x = year, y = accuracy)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2.5) +
+  scale_y_continuous(limits = c(50, 90), breaks = seq(50, 90, 10)) +
+  scale_x_continuous(breaks = years) +
+  labs(
+    title = "Classification accuracy per year (total: 238 solutions)",
+    x = "Year",
+    y = "Accuracy (%)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    panel.grid.minor = element_blank()
+  )
+
+ggsave("images/annotation_accuracy.jpg", width = 8, height = 5, dpi = 300)
+
+```

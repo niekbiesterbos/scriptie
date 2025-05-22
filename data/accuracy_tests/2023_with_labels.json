@@ -1,0 +1,127 @@
+[
+  {
+    "day": 1,
+    "strategy": "None",
+    "part1": "f = lambda str, dir: min((str[::dir].find(num[::dir])%99, i) for i, num in enumerate(\n    '1 2 3 4 5 6 7 8 9 one two three four five six seven eight nine'.split()))[1]%9+1\n\nprint(sum(10*f(x, 1) + f(x, -1) for x in open('data.txt')))"
+  },
+  {
+    "day": 2,
+    "strategy": "None",
+    "part1": "def f(line):\n    bag = {'r':0, 'g':0, 'b':0}\n    for num, col in re.findall(r'(\\d+) (\\w)', line):\n        bag[col] = max(bag[col], int(num))\n    return math.prod(bag.values())"
+  },
+  {
+    "day": 3,
+    "strategy": "None",
+    "part1": "print('Day 03 Part 1:',sum([int(n[0]) for n in [[n.group(),[(x,n.start()+i) for i in range(len(n.group()))]] for x,l in enumerate(q[3].split('\\n')) for n in re.finditer(r'\\d+',l)] if any([abs(c[0]-s[1][0])<=1 and abs(c[1]-s[1][1])<=1 for c in n[1] for s in [[s.group(),(x, s.start())] for x,l in enumerate(q[3].split('\\n')) for s in re.finditer(r'[^.\\d]',l)]])]),'\\nDay 03 Part 2:',(r:=[[s.group(),(x,s.start()),[]] for x,l in enumerate(q[3].split('\\n')) for s in re.finditer(r'[*]',l)]) and [s[2].append(n) if n not in s[2] else 0 for n in [[int(n.group()),[(x,n.start()+i) for i in range(len(n.group()))]] for x,l in enumerate(q[3].split('\\n')) for n in re.finditer(r'\\d+',l)] for c in n[1] for s in r if abs(c[0]-s[1][0])<=1 and abs(c[1]-s[1][1])<=1] and sum([s[2][0][0]*s[2][1][0] for s in r if len(s[2])==2]))"
+  },
+  {
+    "day": 4,
+    "strategy": "None",
+    "part1": "m = [len(set(l[:40].split()) & set(l[42:].split())) for l in open('input.txt')]\nc = [1] * len(m)\nfor i, n in enumerate(m):\n    for j in range(n): c[i + j + 1] += c[i]\nprint(sum(2 ** (n - 1) for n in m if n > 0), sum(c))"
+  },
+  {
+    "day": 5,
+    "strategy": "None",
+    "part1": "print(min(reduce(lookup, maps, int(s))\n    for s in seeds.split()[1:]))"
+  },
+  {
+    "day": 6,
+    "strategy": "None",
+    "part1": "t = T - B    (1)"
+  },
+  {
+    "day": 7,
+    "strategy": "None",
+    "part1": "def type(hand): return sum(map(hand.count, hand))"
+  },
+  {
+    "day": 8,
+    "strategy": "None",
+    "part1": "def parse(filename):\n    lines, graph = open(filename).read().split(\"\\n\"), {}\n    for l in lines[2:]:\n        a, b, c = re.findall(r\"\\w{3}\", l)\n        graph[a] = (b, c)\n    return lines[0], graph\n\ndef part1(moves, graph):\n    pos, c = \"AAA\", 0\n    while pos != \"ZZZ\":\n        pos, c = graph[pos][moves[c % len(moves)] == \"R\"], c + 1\n    return c\n\ndef part2(moves, graph):\n    a_nodes, cycles = [n for n in graph if n.endswith(\"A\")], []\n    for n in a_nodes:\n        c = 0\n        while not n.endswith(\"Z\"):\n            n = graph[n][moves[c % len(moves)] == \"R\"]\n            c += 1\n        cycles.append(c)\n    return math.lcm(*cycles)\n\nmoves, graph = parse(\"input2\")\nprint(part1(moves, graph))\nprint(part2(moves, graph))"
+  },
+  {
+    "day": 9,
+    "strategy": "None",
+    "part1": "history=open('day9.txt').readlines()\n\nfrom math import comb\ndef Lagrange1(nums):\n    n=len(nums)\n    res=0\n    for i,x in enumerate(nums):\n        res+=x*comb(n,i)*(-1)**(n-1-i)\n    return res\n\ndef Lagrange2(nums):\n    n=len(nums)\n    res=0\n    for i,x in enumerate(nums):\n        res+=x*comb(n,i+1)*(-1)**(i)\n    return res\n\nres1,res2=0,0\nfor line in history:\n    nums=list(map(int,line.strip().split()))\n    res1+=Lagrange1(nums)\n    res2+=Lagrange2(nums)\nprint(res1,res2,sep=' ')"
+  },
+  {
+    "day": 10,
+    "strategy": "None",
+    "part1": "d, q, r = (lambda t: (t, [{(t[j].find(\"S\"),j) for j in range(len(t)) if \"S\" in t[j]}], set()))(open(\"input10.txt\").read().strip().split())\nwhile q[-1] or print(len(q)-2, sum(sum(d[j][k] in \"|JLS\" for k in range(i) if (k,j) in r)%2 for j in range(len(d)) for i in range(len(d[j])) if (i,j) not in r)): r, q = r|q[-1], q + [{(u,v) for x,y in q[-1]-r for u,v,f,g in [(x+1, y, \"-LFS\", \"-J7\"), (x-1, y, \"-J7S\", \"-LF\"), (x, y+1, \"|F7S\", \"|LJ\"), (x, y-1, \"|LJS\", \"|F7\")] if (u,v) not in r and 0 <= v < len(d) and 0 <= u < len(d[v]) and d[y][x] in f and d[v][u] in g}]"
+  },
+  {
+    "day": 11,
+    "strategy": "None",
+    "part1": "print(sum(map(lambda g:\n    sum(sum(map(i.__ge__, g)) * (i in g or 1000000) * \n        sum(map(i.__lt__, g)) for i in range(max(g))),\n    zip(*[(x,y) for y,r in enumerate(open('data.txt'))\n                for x,c in enumerate(r) if c=='#']))))"
+  },
+  {
+    "day": 12,
+    "strategy": "None",
+    "part1": "print(sum((g:=lambda m,d: not d if not m else (m[0]!='#' and g(m[1:],d))+(d and match(r'[#?]{%d}[.?]'%d[0],m) and g(m[d[0]+1:],d[1:]) or 0))(s[0]+'.',(*map(int,s[1].split(',')),)) for s in map(str.split,open(0))))\n\nprint(sum((g:=cache(lambda m,d: not d if not m else (m[0]!='#' and g(m[1:],d))+(d and match(r'[#?]{%d}[.?]'%d[0],m) and g(m[d[0]+1:],d[1:]) or 0)))('?'.join([s[0]]*5)+'.',(*map(int,s[1].split(',')),)*5) for s in map(str.split,open(0))))"
+  },
+  {
+    "day": 13,
+    "strategy": "None",
+    "part1": "def f(p, s):\n    for i in range(len(p)):\n        if sum(c != d for l,m in zip(p[i-1::-1], p[i:])\n                      for c,d in zip(l, m)) == s: return i\n    else: return 0"
+  },
+  {
+    "day": 14,
+    "strategy": "None",
+    "part1": "rocks = rocks.replace('.O', 'O.')"
+  },
+  {
+    "day": 15,
+    "strategy": "None",
+    "part1": "def hash_(str):\n  h = 0\n  for c in str:\n    h += ord(c)\n    h = (17*h)%256\n  return h\n\nprint('part1: ', sum(hash_(d) for d in data))\n\nboxes = defaultdict(dict)\n\nfor cmd in data:\n  if '-' in cmd:\n    label = cmd[:-1]\n    boxes[hash_(label)].pop(label, None)\n  else:\n    label, i = cmd.split('=')\n    boxes[hash_(label)][label] = int(i)\n\nprint('part2: ', sum((i+1)*(j+1)*l for i in boxes for j,l in enumerate(boxes[i].values())))"
+  },
+  {
+    "day": 16,
+    "strategy": "None",
+    "part1": "def move(self):\n    m = mirrors[self.y][self.x]\n    if m == '-' and self.dy != 0: # split - return new beams                 \n        return [beam(self.x,self.y,-1,0), beam(self.x,self.y,+1,0)]\n    elif m == '|' and self.dx != 0: # split - return new beams                \n        return [beam(self.x,self.y,0,-1), beam(self.x,self.y,0,+1)]\n    elif m == '/':\n        t = self.dx\n        self.dx, self.dy = -self.dy, -t\n    elif m == '\\\\': \n        t = self.dx\n        self.dx, self.dy = self.dy, t\n\n    self.x, self.y = self.x + self.dx, self.y + self.dy\n    return [self] # the old beam is still moving"
+  },
+  {
+    "day": 17,
+    "strategy": "None",
+    "part1": "for dir in left, right:\n    for steps in range(min_steps, max_steps+1):\n        if pos + steps*dir in G:\n            total_loss = sum(G[pos + step*dir] for step in range(1, step+1))"
+  },
+  {
+    "day": 18,
+    "strategy": "None",
+    "part1": "def f(steps, pos=0, ans=1):\n    for (x,y), n in steps:\n        pos += x*n\n        ans += y*n * pos + n/2\n    return ans"
+  },
+  {
+    "day": 19,
+    "strategy": "None",
+    "part1": "exec(flows.replace(':', ' and ').\n           replace(',', '_() or ').\n           replace('{', '_ = lambda: ').\n           replace('}', '_()'))"
+  },
+  {
+    "day": 20,
+    "strategy": "None",
+    "part1": "import sys, math\nlines = open(sys.argv[1]).read().strip().split('\\n')\ngraph = {}\nfor line in lines:\n    parts = line.split(' -> ')\n    graph[parts[0]] = parts[1].split(', ')\nres = []\nfor m in graph['broadcaster']:\n    m2 = m\n    bin = ''\n    while True:\n        # decode chains of flip flops as bits in an integer\n        g = graph['%'+m2]\n        # flip-flops that link to a conjunction are ones\n        # everything else is a zero\n        bin = ('1' if len(g) == 2 or '%'+g[0] not in graph else '0') + bin\n        nextl = [next_ for next_ in graph['%'+m2] if '%' + next_ in graph]\n        if len(nextl) == 0:\n            break\n        m2 = nextl[0]\n    res += [int(bin, 2)]\n# find least common multiple of integers\nprint(math.lcm(*res))"
+  },
+  {
+    "day": 21,
+    "strategy": "None",
+    "part1": "import aocd\ndata = aocd.get_data(day=21, year=2023).split('\\n')\nn = len(data)\nsparse = {(i,j) for i in range(n) for j in range(n) if data[i][j] in '.S'}\nS = next((i,j) for i in range(n) for j in range(n) if data[i][j] == 'S')\ndirs = [(1,0),(-1,0),(0,1),(0,-1)]\n\ndef tadd(a,b): return ((a[0]+b[0]),(a[1]+b[1]))\ndef modp(a): return(a[0]%n, a[1]%n)\n\nvisited, new, cache = {S}, {S}, {0:1}\nk, r  = 26501365//n, 26501365%n\n\nfor c in range(1,r+2*n+1):\n    visited, new = new, { np for p in new for di in dirs for np in [tadd(p,di)] \n    if np not in visited and modp(np) in sparse}\n    cache[c] = len(new) + (cache[c-2] if c>1 else 0)\n\nd2 = cache[r+2*n]+cache[r]-2*cache[r+n]\nd1 = cache[r+2*n]-cache[r+n]\nprint(\"Part1: %d Part2: %d\" % (cache[60],cache[r+2*n]+(k-2)*(2*d1+(k-1)*d2)//2))"
+  },
+  {
+    "day": 22,
+    "strategy": "None",
+    "part1": "total = 0\nfor disintegrate_ix in range(len(bricks)):\n    will_fall = set([disintegrate_ix])\n    for ix in range(disintegrate_ix + 1, len(bricks)):\n        if not supported_by[ix] - will_fall:\n            will_fall.add(ix)\n    total += len(will_fall) - 1\n\nreturn total"
+  },
+  {
+    "day": 23,
+    "strategy": "GraphTraversal",
+    "part1": "import aocd\nimport networkx as nx\n\ndata = aocd.get_data(day=23, year=2023).split(\"\\n\")\nn, m = len(data), len(data[0])\n\ndef tadd(a,b): return (a[0]+b[0], a[1]+b[1])\ndirs = [(0,1),(0,-1),(1,0),(-1,0)]\nslopes = [\".><\",\".<>\",\".v^\",\".^v\"]\n\nM = {(i,j):c for i,line in enumerate(data) for j, c in enumerate(line)}\nS = (0,next(i for i,c in enumerate(data[0]) if c=='.'))\nE = (n-1,next(i for i,c in enumerate(data[-1]) if c=='.'))\n\nvisited = {S}\nstack = [(S,i) for i,di in enumerate(dirs) if tadd(S,di) in M and M[tadd(S,di)] in '.<>^v']\ngraphs = [nx.DiGraph(), nx.Graph()]\nwhile len(stack):\n    start,direction = stack.pop()\n    prev, cpos, le = start, tadd(start,dirs[direction]), 1\n    visited.add(cpos)\n    way = slopes[direction].index(M[cpos])\n    ndirs = [(i,npos in visited) for i,di in enumerate(dirs)\n            for npos in [tadd(cpos,di)] if npos in M and M[npos] != '#']\n    while len(ndirs) == 2:\n        direction = next(di for di,_ in ndirs if prev != tadd(cpos,dirs[di]))\n        prev, cpos, le = cpos, tadd(cpos,dirs[direction]), le+1\n        way |= slopes[direction].index(M[cpos])\n        visited.add(cpos)\n        ndirs = [(i,npos in visited) for i,di in enumerate(dirs)\n                for npos in [tadd(cpos,di)] if npos in M and M[npos] != '#']\n    if way == 1: graphs[0].add_edge(start, cpos, cost=le)\n    else: graphs[0].add_edge(cpos, start, cost=le)\n    graphs[1].add_edge(start, cpos, cost=le)\n\n    for di in [di2 for di2,vis in ndirs if not(vis)]: stack.append((cpos,di))\n\nfor i,graph in enumerate(graphs,1):\n    res = max(nx.path_weight(graph, path, \"cost\") for path in nx.all_simple_paths(graph, S, E))\n    print(\"Part%d: %d\" % (i,res))"
+  },
+  {
+    "day": 24,
+    "strategy": "None",
+    "part1": "def day24_part2(s):\n  array = np.array([line.replace('@', ',').split(',')\n                    for line in s.splitlines()], int)  \n  p, v, t = (sympy.symbols(f'{ch}(:3)') for ch in 'pvt')\n  equations = [\n      array[i, j] + t[i] * array[i, 3 + j] - p[j] - v[j] * t[i]\n      for i in range(3) for j in range(3)\n  ]\n  return sum(sympy.solve(equations, (*p, *v, *t))[0][:3])"
+  },
+  {
+    "day": 25,
+    "strategy": "None",
+    "part1": "S = set(G)\ncount = lambda v: len(G[v] - S)\nwhile sum(map(count, S)) != 3:\n    S.remove(max(S, key=count))\nprint(len(S) * len(set(G)-S))"
+  }
+]

@@ -1,0 +1,127 @@
+[
+  {
+    "day": 1,
+    "strategy": "None",
+    "part1": "def main():\n    with open(\"inputs/day_01_input.txt\", \"r\") as input_file:\n        directions = input_file.read()\n\n    floor = 0\n    passed_basement = False\n\n    for i, step in enumerate(directions, 1):\n        floor += {\"(\": 1, \")\": -1}[step]\n        if not passed_basement and floor == -1:\n            print(\"Basement on step {}\".format(i))\n            passed_basement = True\n    print(\"Go to floor {}\".format(floor))\n\n\nif __name__ == \"__main__\":\n    main()"
+  },
+  {
+    "day": 2,
+    "strategy": "None",
+    "part1": "#!/usr/bin/env python3\n\"\"\"Solve Day 2/Part 1 of the AdventOfCode\n\nThe elves are running low on wrapping paper, and so they need to\nsubmit an order for more. They have a list of the dimensions (length\nl, width w, and height h) of each present, and only want to order\nexactly as much as they need.\n\nFortunately, every present is a box (a perfect right rectangular\nprism), which makes calculating the required wrapping paper for each\ngift a little easier: find the surface area of the box, which is 2*l*w\n+ 2*w*h + 2*h*l. The elves also need a little extra paper for each\npresent: the area of the smallest side.\n\nFor example:\n\n- A present with dimensions 2x3x4 requires 2*6 + 2*12 + 2*8 = 52\n  square feet of wrapping paper plus 6 square feet of slack, for a\n  total of 58 square feet.\n\n- A present with dimensions 1x1x10 requires 2*1 + 2*10 + 2*10 = 42\n  square feet of wrapping paper plus 1 square foot of slack, for a\n  total of 43 square feet.\n\nAll numbers in the elves' list are in feet. How many total square feet\nof wrapping paper should they order?\n\n\"\"\"\n\ndef get_total_wrapping_paper_area(dimensions):\n    \"\"\"Return the total area needed for all boxes\n\n    This function accepts an iterator which returns length, width,\n    height tuples and determines the total area needed for all of the\n    boxes.\n\n    >>> get_total_wrapping_paper_area([(1, 1, 1)])\n    7\n    >>> get_total_wrapping_paper_area([(1, 1, 1), (1, 1, 10)])\n    50\n    >>> get_total_wrapping_paper_area([])\n    0\n\n    \"\"\"\n    total_area = 0\n    for (length, width, height) in dimensions:\n        total_area += get_wrapping_paper_area(length, width, height)\n\n    return total_area\n\ndef get_wrapping_paper_area(length, width, height):\n    \"\"\"Return the area of paper needed to cover the box\n\n    The area is found by taking the surface area of the box (which is\n    the sum of the areas of each side) and then adding a little bit\n    extra slack for the elves to wrap with.\n\n    The slack is defined as the area of the smallest side.\n\n    >>> get_wrapping_paper_area(1, 1, 1)\n    7\n    >>> get_wrapping_paper_area(1, 1, 10)\n    43\n    >>> get_wrapping_paper_area(2, 3, 4)\n    58\n\n    \"\"\"\n    sides = (\n        length * width,\n        width * height,\n        length * height,\n    )\n\n    return 2 * sum(sides) + min(sides)\n\ndef dimensions_from_line(line):\n    \"\"\"Get dimensions from a single line of text\n\n    Dimensions in a file are expected to be in the form:\n    \"LxWxH\". Where L, W, and H are integers. For example, 2x4x8\n    represents the dimensions of a box with length 2, width 4, and\n    height 8.\n\n    >>> dimensions_from_line(\"1x2x3\")\n    (1, 2, 3)\n    >>> dimensions_from_line(\"2x4x8\")\n    (2, 4, 8)\n    >>> dimensions_from_line(\"\")\n    Traceback (most recent call last):\n     ...\n    ValueError: invalid literal for int() with base 10: ''\n\n    \"\"\"\n    (length, width, height) = map(int, line.split('x'))\n\n    return (length, width, height)\n\ndef dimension_reader(fileobj):\n    \"\"\"Return iterator for each set of dimensions in file\n\n    Dimensions are in the form specified by\n    :func:`dimensions_from_line`.\n\n    >>> list(dimension_reader([\"2x4x8\", \"1x2x3\"]))\n    [(2, 4, 8), (1, 2, 3)]\n    >>> list(dimension_reader([]))\n    []\n\n    \"\"\"\n    for line in fileobj:\n        (length, width, height) = dimensions_from_line(line)\n        yield (length, width, height)\n\ndef main(filename):\n    \"\"\"Read dimensions from file and print the total wrapping paper area\"\"\"\n    with open(filename, 'r') as f:\n        iterator = dimension_reader(f)\n        total_area = get_total_wrapping_paper_area(iterator)\n\n        print(total_area)\n\nif __name__ == \"__main__\":\n    import argparse\n\n    parser = argparse.ArgumentParser()\n    parser.add_argument('filename')\n    args = parser.parse_args()\n\n    main(**vars(args))"
+  },
+  {
+    "day": 3,
+    "strategy": "GraphTraversal",
+    "part1": "def move(pos, dir):\n        if dir == '>':\n            pos = (pos[0] + 1, pos[1])\n        elif dir == '<':\n            pos = (pos[0] - 1, pos[1])\n        elif dir == '^':\n            pos = (pos[0], pos[1] + 1)\n        elif dir == 'v':\n            pos = (pos[0], pos[1] - 1)\n        else:\n            print('invalid input: {}'.format(dir))\n        return pos\n\n\ndef main():\n    with open('day3input.txt', 'r') as input:\n        directions = input.readline()\n    \n    ## Day 3 Part One\n    position = (0, 0)\n    visited = set([position])  # unique locations visited\n    for direction in directions:\n        position = move(position, direction)\n        visited.add(position)\n    print('Part One: {} unique houses visited'.format(len(visited)))\n    \n    ## Day 3 Part Two\n    startPosition = (0, 0)\n    santaPosition = startPosition\n    roboSantaPosition = startPosition\n    visited = set([startPosition])  # unique locations visited\n    for i, direction in enumerate(directions, start=1):\n        if i % 2 != 0:  # santa takes odd numbered directions\n            santaPosition = move(santaPosition, direction)\n            visited.add(santaPosition)\n        else:\n            roboSantaPosition = move(roboSantaPosition, direction)\n            visited.add(roboSantaPosition)\n    print('Part Two: {} unique houses visited'.format(len(visited)))\n\n\nif __name__ == '__main__':\n    main()"
+  },
+  {
+    "day": 4,
+    "strategy": "None",
+    "part1": "import hashlib\n\ndef main():\n    input = 'ckczppom'\n    \n    # Part 1\n    i = 0\n    while True:\n        result = hashlib.md5('{}{}'.format(input, i)).hexdigest()\n        if result[:5] == '00000':\n            print('Part 1 solution found! num = {}'.format(i))  # 117946\n            break\n        i += 1\n    \n    # Part 2\n    i = 0\n    while True:\n        result = hashlib.md5('{}{}'.format(input, i)).hexdigest()\n        if result[:6] == '000000':\n            print('Part 2 solution found! num = {}'.format(i))  # 3938038\n            break\n        i += 1\n\nif __name__ == \"__main__\":\n    main()"
+  },
+  {
+    "day": 5,
+    "strategy": "None",
+    "part1": "input_string = open('input.txt').read()\nif input_string[-1] == '\\n':\n    input_string = input_string[:-1]\n\ndef is_nice(s):\n    vowels = 0\n    for c in s:\n        if c in 'aeiou':\n            vowels += 1\n        if vowels >= 3:\n            break\n    if vowels < 3:\n        return False\n    repeat = False\n    for i in range(len(s) - 1):\n        if s[i] == s[i + 1]:\n            repeat = True\n            break\n    if not repeat:\n        return False\n    if 'ab' in s or 'cd' in s or 'pq' in s or 'xy' in s:\n        return False\n    return True\n\ndef is_really_nice(s):\n    first = False\n    for i in range(len(s) - 3):\n        sub = s[i: i + 2]\n        if sub in s[i + 2:]:\n            first = True\n            print(\"{} is really nice and repeats with {}\".format(s, sub))\n            break\n    if not first:\n        return False\n    second = False\n    for i in range(len(s) - 2):\n        if s[i] == s[i + 2]:\n            second = True\n            break\n    return second\n\ncount1 = 0\ncount2 = 0\nfor s in input_string.split('\\n'):\n    if is_nice(s):\n        count1 += 1\n    if is_really_nice(s):\n        count2 += 1\nprint(count1)\nprint(count2)"
+  },
+  {
+    "day": 6,
+    "strategy": "None",
+    "part1": "from re import findall\n\ndef day6(input):\n    actions = {\n        'toggle': lambda x: x + 2,\n        'turn on': lambda x: x + 1,\n        'turn off': lambda x: x - 1 if x > 0 else 0\n    }\n    lights = [[0 for i in range(1000)] for j in range(1000)]\n    instructions = findall(\"(toggle|turn on|turn off)\\s(\\d*),(\\d*)\\sthrough\\s(\\d*),(\\d*)\", input)\n    for action, x1, y1, x2, y2 in instructions:\n        coords = [(x, y) for x in range(int(x1), int(x2) + 1) for y in range(int(y1), int(y2) + 1)]\n        for x, y in coords:\n            lights[x][y] = actions[action](lights[x][y])\n    flattened = [val for sublist in lights for val in sublist]\n    return sum(flattened)"
+  },
+  {
+    "day": 7,
+    "strategy": "Recursion",
+    "part1": "import sys\nimport functools\n\ndata = {}\n\nfor line in sys.stdin.readlines():\n    cmd, key = line.split(\" -> \")\n    data[key.strip()] = cmd\n\n@functools.lru_cache()\ndef get_value(key):\n    try:\n        return int(key)\n    except ValueError:\n        pass\n\n    cmd = data[key].split(\" \")\n\n    if \"NOT\" in cmd:\n        return ~get_value(cmd[1])\n    if \"AND\" in cmd:\n        return get_value(cmd[0]) & get_value(cmd[2])\n    elif \"OR\" in cmd:\n        return get_value(cmd[0]) | get_value(cmd[2])\n    elif \"LSHIFT\" in cmd:\n        return get_value(cmd[0]) << get_value(cmd[2])\n    elif \"RSHIFT\" in cmd:\n        return get_value(cmd[0]) >> get_value(cmd[2])\n    else:\n        return get_value(cmd[0])\n\ndata[\"b\"] = str(get_value(\"a\"))\nget_value.cache_clear()\nprint(get_value(\"a\"))"
+  },
+  {
+    "day": 8,
+    "strategy": "None",
+    "part1": "def get_diff(str_literal):\n    return len(str_literal) - len(eval(str_literal))\n\ndef escape(str_literal):\n    return (str_literal\n            .replace('\\\\', '\\\\\\\\')\n            .replace('\"', '\\\\\"'))\n\ndef get_diff2(str_literal):\n    return len(escape(str_literal)) - len(str_literal) + 2\n\ndef solve():\n    total = 0\n    for line in input.split():\n        total += get_diff2(line)\n    print(total)"
+  },
+  {
+    "day": 9,
+    "strategy": "None",
+    "part1": "from itertools import permutations, tee\nimport re\n\n\ndef find_routes(d):\n    def pairwise(iterable):\n        a, b = tee(iterable)\n        next(b, None)\n        return zip(a, b)\n\n    locations = set()\n    for k in d.keys():\n        locations.add(k[0])\n        locations.add(k[1])\n\n    routes = {}\n    for route in permutations(locations):\n        distance = 0\n        for origin, destination in pairwise(route):\n            distance += d[(origin, destination)]\n        routes[route] = distance\n    return routes\n\n\ndef find_shortest_route_length(d):\n    routes = find_routes(d)\n    return min(routes.values())\n\n\ndef find_longest_route_length(d):\n    routes = find_routes(d)\n    return max(routes.values())\n\n\ndef part_one():\n    with open(\"inputs/day_09_input.txt\") as input_file:\n        distances = {}\n        for line in input_file.readlines():\n            path = parse(line)\n            add_to_dict(path, distances)\n        print(\"Shortest route length: {}\".format(\n            find_shortest_route_length(distances)))\n\n\ndef part_two():\n    with open(\"inputs/day_09_input.txt\") as input_file:\n        distances = {}\n        for line in input_file.readlines():\n            path = parse(line)\n            add_to_dict(path, distances)\n        print(\"Longest route length: {}\".format(\n            find_longest_route_length(distances)))\n\n\nif __name__ == \"__main__\":\n    part_one()\n    part_two()"
+  },
+  {
+    "day": 10,
+    "strategy": "None",
+    "part1": "from itertools import groupby\n\ndef look_and_say(input_string, num_iterations):\n    for i in xrange(num_iterations):\n        input_string = ''.join([str(len(list(g))) + str(k) for k, g in groupby(input_string)])\n    return input_string"
+  },
+  {
+    "day": 11,
+    "strategy": "DynamicProgramming",
+    "part1": "def solve(password):\n    '''\n    Passwords must include one increasing straight of at least three letters,\n        like abc, bcd, cde, and so on, up to xyz.\n        They cannot skip letters; abd doesn't count.\n    Passwords may not contain the letters i, o, or l, as these letters can\n        be mistaken for other characters and are therefore confusing.\n    Passwords must contain at least two pairs of letters, like aa, bb, or zz.\n    '''\n    as_bytes = [n-ord('a') for n in password.encode()]\n    while True:\n        as_bytes[-1] += 1\n        for i in range(len(as_bytes)-1, -1, -1):\n            if as_bytes[i] > 25:\n                as_bytes[i] = 0\n                as_bytes[i-1] += 1\n        check = any(a+1==b and a+2==c and a+b+c != 'abd' for a, b, c in zip(as_bytes, as_bytes[1:], as_bytes[2:]))\n        if not check:\n            continue\n        as_string = ''.join(chr(n+ord('a')) for n in as_bytes)\n        if 'i' in as_string or 'o' in as_string or 'l' in as_string:\n            continue\n        pairs = list(i for i, (a, b) in enumerate(zip(as_string, as_string[1:])) if a==b)\n        check = any(a+1!=b for a, b in zip(pairs, pairs[1:]))\n        if not check:\n            continue\n        return as_string\n\n\nans = solve('cqjxjnds')\nprint(ans)\n\n# finished #70"
+  },
+  {
+    "day": 12,
+    "strategy": "Recursion",
+    "part1": "from json import loads\n\ndef n(j):\n    if type(j) == int:\n        return j\n    if type(j) == list:\n        return sum([n(j) for j in j])\n    if type(j) != dict:\n        return 0\n    if 'red' in j.values():\n        return 0\n    return n(list(j.values()))\n\nprint(n(loads(input())))"
+  },
+  {
+    "day": 13,
+    "strategy": "None",
+    "part1": "from sys import stdin\nfrom re import findall\nfrom itertools import permutations\n\nm = {}\nppl = set()\n\nfor line in stdin.readlines():\n    a, s, n, b = findall(r'(\\w+) \\w+ (\\w+) (\\d+) .* (\\w+)\\.', line)[0]\n    m[a+b] = int(n) * (1 if s == 'gain' else -1)\n    ppl.add(a)\n\ndef c(p):\n    L = len(p)\n    t = 0\n    for i in range(L):\n        t += m[p[i]+p[i-1]]\n        t += m[p[i]+p[(i+1) % L]]\n    return t\n\nprint(max([c(p) for p in permutations(ppl)]))"
+  },
+  {
+    "day": 14,
+    "strategy": "None",
+    "part1": "v*g*t/(g + r) + v*min(g, t % (g + r))"
+  },
+  {
+    "day": 15,
+    "strategy": "Recursion",
+    "part1": "def mixtures(n, total):\n    start = total if n == 1 else 0\n\n    for i in range(start, total+1):\n        left = total - i\n        if n-1:\n            for y in mixtures(n-1, left):\n                yield [i] + y\n        else:\n            yield [i]"
+  },
+  {
+    "day": 16,
+    "strategy": "None",
+    "part1": "day = 16\ninput = get_input(day)\n\nimport re\n\nm = []\nfor line in input.split('\\n'):\n    x = re.match(r'Sue \\d+: ([a-z]+): (\\d+), ([a-z]+): (\\d+), ([a-z]+): (\\d+)', line)\n    k1, a1, k2, a2, k3, a3 = x.group(1, 2, 3, 4, 5, 6, 7)\n    a1, a2, a3 = int(a1), int(a2), int(a3)\n    m.append({k1: a1, k2: a2, k3: a3})\n\ntape = {\n    'children': 3,\n    'cats': 7,\n    'samoyeds': 2,\n    'pomeranians': 3,\n    'akitas': 0,\n    'vizslas': 0,\n    'goldfish': 5,\n    'trees': 3,\n    'cars': 2,\n    'perfumes': 1,\n}\n\ndef could_match(aunt):\n    return all(tape[k] == v for k,v in aunt.items())\n\naunts = [i+1 for i,x in enumerate(m)\n         if could_match(x)]\nassert len(aunts) == 1\nprint(aunts[0])\n\ndef could_match2(aunt):\n    for k,v in aunt.items():\n        if k in ['cats', 'trees']:\n            if tape[k] >= v:\n                return False\n        elif k in ['pomeranians', 'goldfish']:\n            if tape[k] <= v:\n                return False\n        else:\n            if tape[k] != v:\n                return False\n    return True\n\naunts = [i+1 for i,x in enumerate(m)\n         if could_match2(x)]\nassert len(aunts) == 1\nprint(aunts[0])"
+  },
+  {
+    "day": 17,
+    "strategy": "None",
+    "part1": "def count_combinations(container_sizes, target_sum):\n    dp = [1] + [0]*(target_sum)\n    for cur_num in container_sizes:\n        for next_num in xrange(target_sum, cur_num-1, -1):\n            dp[next_num] += dp[next_num - cur_num]\n    return dp[target_sum]\n\n\ndef count_minimal_combinations(container_sizes, target_sum):\n    ans = 0\n    for k in xrange(1, len(container_sizes) + 1):\n        for c in combinations(container_sizes, k):\n            if sum(c) == target_sum:\n                ans+=1\n        if ans:\n            break\n    return ans"
+  },
+  {
+    "day": 18,
+    "strategy": "None",
+    "part1": "import copy\n\ndef memoize(f):\n    class memodict(dict):\n        def __missing__(self, key):\n            ret = self[key] = f(key)\n            return ret \n    return memodict().__getitem__\n\n@memoize\ndef adj(ij):\n    i, j = ij\n    return [(x, y) for x in [i-1, i, i+1]\n            for y in [j-1, j, j+1] \n            if 0 <= x < 100 and 0 <= y < 100 and (i, j) != (x, y)]\n\ndef next_state(m):\n    n = copy.deepcopy(m)\n    for i in range(100):\n        for j in range(100):\n            states = [m[x][y] for x, y in adj((i, j))]\n            if m[i][j] == '#' and states.count('#') not in [2, 3]:\n                n[i][j] = '.'\n            if m[i][j] == '.' and states.count('#') == 3:\n                n[i][j] = '#'\n    n[0][0] = '#'\n    n[0][99] = '#'\n    n[99][0] = '#'\n    n[99][99] = '#'\n    return n\n    \nm = []\nfor line in input.split('\\n'):\n    m.append([c for c in line])\nm[0][0] = '#'\nm[0][99] = '#'\nm[99][0] = '#'\nm[99][99] = '#'\nfor _ in range(100):\n    m = next_state(m)\nprint(sum(row.count('#') for row in m))"
+  },
+  {
+    "day": 19,
+    "strategy": "None",
+    "part1": "def read(s):\n    return [i.strip() for i in open(s, 'r')]\nlines = read('19a.input')\n\nreplacements = []\nfor i in lines[:-2]:\n    m = re.findall(r'(\\S+) => (\\S+)', i)\n    replacements.append(m[0])\nX = lines[-1]"
+  },
+  {
+    "day": 20,
+    "strategy": "None",
+    "part1": "a = [13, 5, 4, 4,  3]\np = [ 2, 3, 5, 7, 11]"
+  },
+  {
+    "day": 21,
+    "strategy": "None",
+    "part1": "weapons = []\narmor = []\nrings = []\n\nc = 0\nfor i in lines:\n    if i == '':\n        c += 1\n        continue\n    p = i.split()\n    p = p[-3:] # had a bug here, the line was p = p[1:]\n    p = vectorize(int)(p)\n    if c == 0:\n        weapons.append(p)\n    if c == 1:\n        armor.append(p)\n    if c == 2:\n        rings.append(p)\n\narmor.append([0, 0, 0]) # making not wearing armor possible\nrings.append([0, 0, 0]) # same for rings\nrings.append([0, 0, 0])"
+  },
+  {
+    "day": 22,
+    "strategy": "Recursion",
+    "part1": "def f(hp, mana, bhp, s_t, p_t, r_t, turn, depth):\n    if turn:\n        hp -= 1\n    if bhp <= 0:\n        return 0\n\n    hp = min(hp, 50)\n\n    if depth == 0 or hp <= 0:\n        return 1e10\n\n    ns_t = max(0, s_t - 1)\n    np_t = max(0, p_t - 1)\n    nr_t = max(0, r_t - 1)\n\n    if not turn:\n        if p_t > 0:\n            bhp -= 3\n\n        armor = 0 if s_t == 0 else 7\n\n        if r_t > 0:\n            mana += 101\n\n        if bhp <= 0:\n            return 0\n        else:\n            hp -= max(1, bdmg - armor)\n\n        return f(hp, mana, bhp, ns_t, np_t, nr_t, not turn, depth - 1)\n    else:\n        if p_t > 0:\n            bhp -= 3\n\n        if bhp <= 0:\n            return 0\n\n        if r_t > 0:\n            mana += 101\n\n        mi = 1e10\n\n        if mana < 53:\n            return 1e10\n\n        if mana >= 53:\n            mi = min(mi, 53  + f(hp,     mana -  53, bhp - 4, ns_t, np_t, nr_t, not turn, depth - 1))\n\n        if mana >= 73:\n            mi = min(mi, 73  + f(hp + 2, mana -  73, bhp - 2, ns_t, np_t, nr_t, not turn, depth - 1))\n\n        if mana >= 113 and ns_t == 0:\n            mi = min(mi, 113 + f(hp,     mana - 113, bhp,     6,    np_t, nr_t, not turn, depth - 1))\n\n        if mana >= 173 and np_t == 0:\n            mi = min(mi, 173 + f(hp,     mana - 173, bhp,     ns_t, 6,    nr_t, not turn, depth - 1))\n\n        if mana >= 229 and nr_t == 0:\n            mi = min(mi, 229 + f(hp,     mana - 229, bhp,     ns_t, np_t, 5,    not turn, depth - 1))\n\n        return mi"
+  },
+  {
+    "day": 23,
+    "strategy": "None",
+    "part1": "from src import split_data\n\n\nclass Day23:\n    def __init__(self, register):\n        self.register = register\n\n    @split_data\n    def program(self, instructions):\n        next_position = 0\n        while next_position < len(instructions):\n            i = instructions[next_position].split(' ')\n            next_position = self.apply_instruction(i, i[0], next_position)\n\n        return self.register\n\n    def apply_instruction(self, i, command, position):\n        if command == 'inc':\n            self.register[i[1][0:1]] += 1\n            position += 1\n        elif command == 'hlf':\n            self.register[i[1][0:1]] /= 2\n            position += 1\n        elif command == 'tpl':\n            self.register[i[1][0:1]] *= 3\n            position += 1\n        elif command == 'jmp':\n            position += int(i[1])\n        elif command == 'jio' and self.register[i[1][0:1]] == 1:\n            position += int(i[2])\n        elif command == 'jie' and self.register[i[1][0:1]] % 2 == 0:\n            position += int(i[2])\n        else:\n            position += 1\n        return position"
+  },
+  {
+    "day": 24,
+    "strategy": "None",
+    "part1": "day = 24\n\nfrom functools import reduce\nfrom itertools import combinations\nfrom operator import mul\n\nwts = [int(x) for x in get_input(day).split('\\n')]\n\ndef day24(num_groups):\n    group_size = sum(wts) // num_groups\n    for i in range(len(wts)):\n        qes = [reduce(mul, c) for c in combinations(wts, i) \n              if sum(c) == group_size]\n        if qes:\n            return min(qes)\n\nprint(day24(3))\nprint(day24(4))"
+  },
+  {
+    "day": 25,
+    "strategy": "None",
+    "part1": "def next_code(cur_code):\n\treturn (cur_code * 252533) % 33554393\n\ndef get_code_count(row, column):\n\treturn sum(range(row + column - 1)) + column\n\nfirst_code = 20151125\ncode_coords = (2947, 3029)\n\ncode_count = get_code_count(*code_coords)\ncur_code = first_code\nfor i in range(code_count - 1):\n\tcur_code = next_code(cur_code)\nprint(cur_code)"
+  }
+]

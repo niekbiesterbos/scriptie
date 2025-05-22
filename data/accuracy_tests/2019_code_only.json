@@ -1,0 +1,62 @@
+[
+  {
+    "day": 1,
+    "part1": "import Common\n\n\ndef calc_fuel(mass):\n    return int(mass / 3) - 2\n\n\ndef calc_fuel_recursive(mass):\n    fuel = calc_fuel(mass)\n    if fuel <= 0:\n        return 0\n    else:\n        return fuel + calc_fuel_recursive(fuel)\n\n\nline_input = Common.inputAsLines()\nsum = 0\nrecursive_sum = 0\nfor line in line_input:\n    mass = int(line)\n    sum += calc_fuel(mass)\n    recursive_sum += calc_fuel_recursive(mass)\n\nprint(sum)\nprint(recursive_sum)"
+  },
+  {
+    "day": 2,
+    "part1": "def get_data():\n    with open(\"day2_input.txt\", \"r\") as f:\n        data = f.read()\n    return [int(x) for x in data.split(\",\")]\n\n\ndef part1(data, noun=12, verb=2):\n    ptr = 0\n    prog = data[:]\n    prog[1] = noun\n    prog[2] = verb\n    while True:\n        if prog[ptr] == 1:\n            prog[prog[ptr + 3]] = prog[prog[ptr + 1]] + prog[prog[ptr + 2]]\n        elif prog[ptr] == 2:\n            prog[prog[ptr + 3]] = prog[prog[ptr + 1]] * prog[prog[ptr + 2]]\n        elif prog[ptr] == 99:\n            break\n        else:\n            print(\"SHOULDN'T HAPPEN\")\n        ptr += 4\n\n    return prog[0]\n\n\ndef part2(data):\n    for noun in range(100):\n        for verb in range(100):\n            if part1(data, noun, verb) == 19690720:\n                return 100 * noun + verb"
+  },
+  {
+    "day": 3,
+    "part1": "def process_wire(instr_line):\n    current_pos = [0, 0]\n    for instr in instr_line.split(','):\n        for _ in range(int(instr[1:])):\n            current_pos[0 if instr[0] in ('L', 'R') else 1] += -1 if instr[0] in ('L', 'D') else 1\n            yield tuple(current_pos)\nwith open('input.txt', 'r') as f:\n    wires = [list(process_wire(line)) for line in f.readlines()]\nintersections = set(wires[0]) & set(wires[1])\nprint(min(abs(x)+abs(y) for (x, y) in intersections)) #Part 1\nprint(2 + min(sum(wire.index(intersect) for wire in wires) for intersect in intersections)) #Part 2"
+  },
+  {
+    "day": 4,
+    "part1": "def check(n):\n    return list(n) == sorted(n) and 2 in map(n.count, n)\n\nprint(sum(check(str(n)) for n in range(123456, 654321)))"
+  },
+  {
+    "day": 5,
+    "part1": "def R(I,X,e=__import__('operator'),S=list.__setitem__):\n    def J(t,a):nonlocal i;i=a if t else i\n    W=0,4,4,2,2,3,3,4,4;T=lambda f:lambda a,b,c:S(p,c,f(a,b));i,p=0,[*map(int,I.split(','))]\n    F=0,T(e.add),T(e.mul),lambda a:S(p,a,X),print,J,lambda a,b:J(a==0,b),T(e.lt),T(e.eq)\n    D=lambda v:(c:=v%10,w:=W[c],[v//10**j&1|(398&2**c>0)&(j==w)for j in range(2,w+1)])\n    while p[i]!=99:t=i;c,w,M=D(p[i]);F[c](*[x if m else p[x]for m,x in zip(M,p[i+1:])]);J(t==i,t+w)\n\nR(I,1),R(I,5)"
+  },
+  {
+    "day": 6,
+    "part1": "def trace(x):\n    return (trace(orbits[x]) if x in orbits else []) + [x]\n\n\ndata = [x.strip().split(\")\") for x in open(\"inputs/day06.txt\")]\norbits = {y: x for x, y in data}\nyou, san = trace(\"YOU\"), trace(\"SAN\")\noffset = sum(x == y for x, y in zip(you, san))\nprint(sum(len(trace(x)) - 1 for x in orbits.keys()))\nprint(len(you) - you.index(you[offset + 1]) + len(san) - san.index(san[offset + 1]))"
+  },
+  {
+    "day": 7,
+    "part1": "from itertools import permutations\n\n\nP = list(map(int, open('input.txt').read().strip().split(',')))\n\ndef run():\n    p = P[:]\n    ip = 0\n    while True:\n        cmd = p[ip]\n        op = cmd % 100\n        if op == 1:\n            a1 = p[ip + 1] if cmd // 100 % 10 == 1 else p[p[ip + 1]]\n            a2 = p[ip + 2] if cmd // 1000 % 10 == 1 else p[p[ip + 2]]\n            p[p[ip + 3]] = a1 + a2\n            ip += 4\n        elif op == 2:\n            a1 = p[ip + 1] if cmd // 100 % 10 == 1 else p[p[ip + 1]]\n            a2 = p[ip + 2] if cmd // 1000 % 10 == 1 else p[p[ip + 2]]\n            p[p[ip + 3]] = a1 * a2\n            ip += 4\n        elif op == 3:\n            p[p[ip+1]] = yield\n            ip += 2\n        elif op == 4:\n            yield p[p[ip+1]]\n            ip += 2\n        elif op == 5:\n            a = p[ip + 1] if cmd // 100 % 10 == 1 else p[p[ip + 1]]\n            if a != 0:\n                ip = p[ip + 2] if cmd // 1000 % 10 == 1 else p[p[ip + 2]]\n            else:\n                ip += 3\n        elif op == 6:\n            a = p[ip + 1] if cmd // 100 % 10 == 1 else p[p[ip + 1]]\n            if a == 0:\n                ip = p[ip + 2] if cmd // 1000 % 10 == 1 else p[p[ip + 2]]\n            else:\n                ip += 3\n        elif op == 7:\n            a1 = p[ip + 1] if cmd // 100 % 10 == 1 else p[p[ip + 1]]\n            a2 = p[ip + 2] if cmd // 1000 % 10 == 1 else p[p[ip + 2]]\n            p[p[ip + 3]] = 1 if a1 < a2 else 0\n            ip += 4\n        elif op == 8:\n            a1 = p[ip + 1] if cmd // 100 % 10 == 1 else p[p[ip + 1]]\n            a2 = p[ip + 2] if cmd // 1000 % 10 == 1 else p[p[ip + 2]]\n            p[p[ip + 3]] = 1 if a1 == a2 else 0\n            ip += 4\n        elif op == 99:\n            break\n\nm = 0\nfor x in permutations(range(5, 10)):\n    gs = []\n    for phase in x:\n        g = run(phase)\n        next(g)\n        g.send(phase)\n        gs.append(g)\n    signal = 0\n    while True:\n        for g in gs:\n            signal = g.send(signal)\n        try:\n            for g in gs:\n                next(g)\n        except StopIteration:\n            break\n    m = max(m, signal)\nprint(m)"
+  },
+  {
+    "day": 8,
+    "part1": "def split(lst, size):\n    return [lst[i:i+size] for i in range(0, len(lst), size)]\n\ndef count(l, v):\n    return sum(map(lambda x: 1 if x == v else 0, l))\n\ndef collapse(layers):\n    return [next(filter(lambda v: v != 2, lay)) for lay in zip(*layers)]\n\ndef draw(img):\n    for r in img: print(*['#' if x == 1 else ' ' for x in r])\n\nlenx, leny = 25, 6\ndata = [int(x) for x in open('./input.txt').read().strip('\\n')]\n\n# Part 1\nlayers = split(data, lenx*leny)\nbest = min(layers, key=lambda l: count(l, 0))\nprint(count(best, 1) * count(best, 2))\n\n# Part 2\nimg = split(collapse(layers), lenx)\ndraw(img)"
+  },
+  {
+    "day": 9,
+    "part1": "def V(I,e=__import__('operator'),S=list.__setitem__):\n    R=[0,0];J=lambda t,a:S(R,0,a if t else R[0]);B=lambda a:S(R,1,R[1]+a)\n    W=0,4,4,2,2,3,3,4,4,2;T=lambda f:lambda a,b,c:S(p,c,f(a,b))\n    F=0,T(e.add),T(e.mul),lambda a:S(p,a,int(input())),print,J,lambda a,b:J(a==0,b),T(e.lt),T(e.eq),B\n    D=lambda v:(c:=v%10,w:=W[c],[v//10**j%10&3|(398&2**c>0)&(j==w)for j in range(2,w+1)])\n    g=lambda m,x:[x,R[1]+x][m>1]if m&1 else p[[x,R[1]+x][m>0]];p=[*map(int,I.split(','))]+[0]*10000\n    while p[R[0]]!=99:t=R[0];c,w,M=D(p[t]);F[c](*[g(m,x)for m,x in zip(M,p[t+1:])]);J(t==R[0],t+w)"
+  },
+  {
+    "day": 10,
+    "part1": "from fractions import gcd\nimport math\n\ndef diff(a0, a1):\n    return (a1[0]-a0[0], a1[1]-a0[1])\n\ndef div(a, f):\n    return (a[0]//f if f else 0, a[1]//f if f else 0)\n\ndef unique_step(a0, a1):\n    return div(diff(a0, a1), abs(gcd(*diff(a0, a1))))\n\ndef unique_asteroid_dirs(a0, asteroids):\n    return {unique_step(a0, a) for a in asteroids}\n\nif __name__ == \"__main__\":\n\n    with open(\"10.data\", \"r\") as f:\n\n        data = f.read().splitlines()\n        # solution for puzzle 1:\n        all_asteroids = [(x,y) for y,l in enumerate(data) for x, a in enumerate(list(l)) if a == \"#\"]\n        print(max(len(unique_asteroid_dirs(asteroid, all_asteroids))-1 for asteroid in all_asteroids))"
+  },
+  {
+    "day": 12,
+    "part1": "def do_step(positions, velocities):\n  velocities += np.sum(np.sign(positions - positions[:, np.newaxis]), \n                       axis=1)\n  positions += velocities"
+  },
+  {
+    "day": 16,
+    "part1": "from itertools import cycle, accumulate\ndef level2():\n    with open(\"data/day16.txt\") as f:\n        s = f.read().strip()\n    offset = int(s[:7])\n    digits = [int(i) for i in s]\n    # If `rep` is `digits` repeated 10K times, construct: \n    #     arr = [rep[-1], rep[-2], ..., rep[offset]]\n    l = 10000 * len(digits) - offset\n    i = cycle(reversed(digits))\n    arr = [next(i) for _ in range(l)]\n    # Repeatedly take the partial sums mod 10\n    for _ in range(100):\n        arr = [n % 10 for n in accumulate(arr)]\n    return \"\".join(str(i) for i in arr[-1:-9:-1])"
+  },
+  {
+    "day": 17,
+    "part1": "def find_subroutines(instructions):\n    for a in range(1, 10):\n        A = instructions[0:a]\n        for c in range(1, 10):\n            C = instructions[-c:]\n            # get fragments not covered by A or C, \n            # and keep track of shortest fragment\n            \n            # if the shortest fragment covers longer fragments\n            # return A, shortest_fragment, C"
+  },
+  {
+    "day": 19,
+    "part1": "def check(point):\n    prog.reset()\n    prog.run(inp=point)\n    return prog.out[0] if prog.out else None\n\n\nprog = Intcomp(in1)\nx = box = 100\nfor y in range(box, 99999):\n    while check((x, y)) == 0: x += 1\n    if check((x+box-1, y-box+1)) == 1: break\n\nprint(f\"Closest point to fit santa's ship {(x, y-99)}: {x * 10000 + y-99}\")"
+  },
+  {
+    "day": 22,
+    "part1": "D = 119315717514047  # deck size\n\ndef reverse_deal(i):\n    return D-1-i\n    \ndef reverse_cut(i, N):\n    return (i+N+D) % D\n\ndef reverse_increment(i, N):\n    return modinv(N, D) * i % D  # modinv is modular inverse"
+  }
+]

@@ -1,0 +1,124 @@
+---
+title: "strategy-use-across-day"
+author: "Niek Biesterbos"
+date: "2025-05-02"
+output: html_document
+---
+
+```{r prepare-df}
+library(jsonlite)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(viridis)
+library(broom)
+
+data <- fromJSON("../data/solutions_with_metrics.json", simplifyVector = FALSE)
+
+# Step 2: Build dataframe
+df <- purrr::map_dfr(data, function(sol) {
+  if (is.null(sol$algorithmicStrategies) || 
+      is.null(sol$maintainabilityIndex$mi) ||
+      is.null(sol$halsteadMetrics$total$volume) ||
+      is.null(sol$day) || is.null(sol$year)) return(NULL)
+
+  strategy <- sol$algorithmicStrategies[[1]]
+  mi <- sol$maintainabilityIndex$mi
+  halstead <- sol$halsteadMetrics$total$volume
+  day <- sol$day
+  year <- sol$year
+
+  cc_list <- sol$cyclomaticComplexity
+  if (!is.null(cc_list) && length(cc_list) > 0) {
+    cc_vals <- sapply(cc_list, function(f) f$complexity)
+    cc <- mean(cc_vals)
+  } else {
+    cc <- NA_real_
+  }
+
+  tibble(strategy = strategy, day = day, year = year, mi = mi, halstead = halstead, cc = cc)
+})
+
+# Step 3: Clean missing
+df <- df %>% filter(!is.na(strategy), !is.na(day), !is.na(mi), !is.na(halstead), !is.na(cc))
+```
+
+```{r heatmap}
+# Count strategies per day
+df_norm <- df %>%
+  count(strategy, day) %>%
+  group_by(strategy) %>%
+  mutate(prop = n / sum(n))
+
+ggplot(df_norm, aes(x = factor(day), y = strategy, fill = prop)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis(name = "Proportion", option = "C") +
+  labs(title = "Relative strategy use per day", x = "Day", y = "Strategy") +
+  theme_minimal()
+
+ggsave("images/strategy_per_day_normalized_by_strategy.jpg", width = 8, height = 5, dpi = 300)
+
+# Count strategies per day and normalize per day
+df_day_norm <- df %>%
+  count(day, strategy) %>%
+  group_by(day) %>%
+  mutate(prop = n / sum(n))
+
+ggplot(df_day_norm, aes(x = factor(day), y = strategy, fill = prop)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis(name = "Proportion", option = "C") +
+  labs(title = "Strategy proportion per day", x = "Day", y = "Strategy") +
+  theme_minimal()
+
+ggsave("images/strategy_per_day_normalized_by_day.jpg", width = 8, height = 5, dpi = 300)
+
+```
+
+```{r fisher}
+# Contingency table: strategy × day
+table_strat_day <- table(df$strategy, df$day)
+
+chi_res <- chisq.test(table_strat_day)
+expected_counts <- chi_res$expected
+
+# Expected counts
+expected_df <- as.data.frame(as.table(expected_counts)) %>%
+  rename(strategy = Var1, day = Var2, expected = Freq)
+
+# Show in table
+expected_df %>%
+  pivot_wider(names_from = day, values_from = expected) %>%
+  knitr::kable(digits = 1, caption = "Expected counts per cell (strategy × day)")
+
+# Fisher freeman halton because n < 5 for many
+chisq.test(table_strat_day, simulate.p.value = TRUE, B = 9999)
+
+X2 <- 490.16
+n <- sum(table_strat_day)
+min_dim <- min(nrow(table_strat_day), ncol(table_strat_day))
+
+cramers_v <- sqrt(X2 / (n * (min_dim - 1)))
+cramers_v
+
+
+table_strat_day_no_none <- df %>%
+  filter(strategy != "None") %>%
+  count(strategy, day) %>%
+  pivot_wider(names_from = day, values_from = n, values_fill = 0) %>%
+  column_to_rownames("strategy") %>%
+  as.matrix()
+
+chisq.test(table_strat_day_no_none, simulate.p.value = TRUE, B = 9999)
+
+
+X2 <- 483.55
+n <- sum(table_strat_day_no_none)
+min_dim <- min(nrow(table_strat_day_no_none), ncol(table_strat_day_no_none))
+
+cramers_v <- sqrt(X2 / (n * (min_dim - 1)))
+cramers_v
+
+
+```
+

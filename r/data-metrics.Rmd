@@ -1,0 +1,72 @@
+---
+title: "data-metrics"
+author: "Niek Biesterbos"
+date: "2025-05-09"
+output: html_document
+---
+
+```{r prepare-df}
+library(jsonlite)
+library(tidyverse)
+library(broom)
+library(ggpubr)
+library(FSA)
+library(dunn.test)
+
+data <- fromJSON("../data/solutions_with_metrics.json", simplifyVector = FALSE)
+
+# Step 2: Build dataframe
+df <- purrr::map_dfr(data, function(sol) {
+  if (is.null(sol$algorithmicStrategies) || 
+      is.null(sol$maintainabilityIndex$mi) ||
+      is.null(sol$halsteadMetrics$total$volume) ||
+      is.null(sol$day) ||
+      is.null(sol$year)) return(NULL)
+
+  strategy <- sol$algorithmicStrategies[[1]]
+  mi <- sol$maintainabilityIndex$mi
+  halstead <- sol$halsteadMetrics$total$volume
+  day <- sol$day
+  year <- sol$year
+
+  cc_list <- sol$cyclomaticComplexity
+  if (!is.null(cc_list) && length(cc_list) > 0) {
+    cc_vals <- sapply(cc_list, function(f) f$complexity)
+    cc <- mean(cc_vals)
+  } else {
+    cc <- NA_real_
+  }
+
+  tibble(strategy = strategy, day = day, year = year, mi = mi, halstead = halstead, cc = cc)
+})
+
+
+# Step 3: Clean missing
+df <- df %>% filter(!is.na(year), !is.na(day), !is.na(mi), !is.na(halstead), !is.na(cc))
+```
+
+```{r metrics-summary}
+total_solutions <- nrow(df)
+
+solutions_per_year <- df %>% count(year)
+years_covered <- paste(range(df$year), collapse = "–")
+
+solutions_per_day <- df %>% count(day)
+min_day <- solutions_per_day %>% filter(n == min(n)) %>% pull(day)
+max_day <- solutions_per_day %>% filter(n == max(n)) %>% pull(day)
+min_n <- min(solutions_per_day$n)
+max_n <- max(solutions_per_day$n)
+
+solutions_per_strategy <- df %>%
+  count(strategy) %>%
+  mutate(pct = round(100 * n / total_solutions, 1)) %>%
+  arrange(desc(n))
+
+list(
+  total_solutions = total_solutions,
+  years_covered = years_covered,
+  min_day = list(day = min_day, n = min_n),
+  max_day = list(day = max_day, n = max_n),
+  strategies = solutions_per_strategy
+)
+

@@ -1,0 +1,147 @@
+---
+title: "Code complexity per day"
+author: "Niek Biesterbos"
+date: "2025-05-01"
+output: html_document
+---
+
+```{r prepare-df}
+library(jsonlite)
+library(tidyverse)
+library(broom)
+library(ggpubr)
+library(FSA)
+library(dunn.test)
+
+data <- fromJSON("../data/solutions_with_metrics.json", simplifyVector = FALSE)
+
+# Step 2: Build dataframe
+df <- purrr::map_dfr(data, function(sol) {
+  if (is.null(sol$algorithmicStrategies) || 
+      is.null(sol$maintainabilityIndex$mi) ||
+      is.null(sol$halsteadMetrics$total$volume) ||
+      is.null(sol$day)) return(NULL)
+
+  strategy <- sol$algorithmicStrategies[[1]]
+  mi <- sol$maintainabilityIndex$mi
+  halstead <- sol$halsteadMetrics$total$volume
+  day <- sol$day
+
+  cc_list <- sol$cyclomaticComplexity
+  if (!is.null(cc_list) && length(cc_list) > 0) {
+    cc_vals <- sapply(cc_list, function(f) f$complexity)
+    cc <- mean(cc_vals)
+  } else {
+    cc <- NA_real_
+  }
+
+  tibble(strategy = strategy, day = day, mi = mi, halstead = halstead, cc = cc)
+})
+
+# Step 3: Clean missing
+df <- df %>% filter(!is.na(strategy), !is.na(day), !is.na(mi), !is.na(halstead), !is.na(cc))
+```
+
+```{r halstead}
+ggplot(df, aes(x = factor(day), y = halstead)) +
+  geom_boxplot(fill = "lightblue") + scale_y_log10() +
+  labs(title = "Halstead volume per day", x = "Day", y = "Halstead volume (log10 scale)") +
+  theme_minimal()
+
+ggsave("images/halstead_per_day.jpg", width = 8, height = 5, dpi = 300)
+
+```
+
+```{r halstead-test}
+halstead_test <- kruskal.test(halstead ~ factor(day), data = df)
+halstead_result <- tidy(halstead_test)
+halstead_result
+```
+
+
+```{r halstead-effect}
+k <- length(unique(df$strategy))
+n <- nrow(df)
+H <- halstead_result$statistic
+
+eta2_halstead <- (H - k + 1) / (n - k)
+eta2_halstead
+```
+
+```{r halstead-post-hoc}
+dunn_result <- dunnTest(halstead ~ as.factor(day), data = df, method = "bonferroni")
+
+sorted_dunn <- dunn_result$res[order(dunn_result$res$P.adj), ]
+n_significant <- sum(sorted_dunn$P.adj < 0.05)
+
+n_significant
+sorted_dunn
+```
+
+```{r CC}
+ggplot(df, aes(x = factor(day), y = cc)) +
+  geom_boxplot(fill = "tomato") + scale_y_log10() +
+  labs(title = "Cyclomatic complexity per day", x = "Day", y = "Cyclomatic complexity (log10 scale)") +
+  theme_minimal()
+
+ggsave("images/cc_per_day.jpg", width = 8, height = 5, dpi = 300)
+```
+
+```{r CC-test}
+cc_test <- kruskal.test(cc ~ factor(day), data = df)
+cc_result <- tidy(cc_test)
+cc_result
+```
+
+```{r CC-effect}
+k <- length(unique(df$strategy))
+n <- nrow(df)
+H <- cc_result$statistic
+
+eta2_cc <- (H - k + 1) / (n - k)
+eta2_cc
+```
+
+```{r CC-post-hoc}
+dunn_result <- dunnTest(cc ~ as.factor(day), data = df, method = "bonferroni")
+
+sorted_dunn <- dunn_result$res[order(dunn_result$res$P.adj), ]
+n_significant <- sum(sorted_dunn$P.adj < 0.05)
+
+n_significant
+sorted_dunn
+```
+
+```{r MI}
+ggplot(df, aes(x = factor(day), y = mi)) +
+  geom_boxplot(fill = "lightgreen") +
+  labs(title = "Maintainability index per day", x = "Day", y = "Maintainability index") +
+  theme_minimal()
+
+ggsave("images/mi_per_day.jpg", width = 8, height = 5, dpi = 300)
+```
+
+```{r MI-test}
+mi_test <- kruskal.test(mi ~ factor(day), data = df)
+mi_result <- tidy(mi_test)
+mi_result
+```
+
+```{r MI-effect}
+k <- length(unique(df$strategy))
+n <- nrow(df)
+H <- mi_result$statistic
+
+eta2_mi <- (H - k + 1) / (n - k)
+eta2_mi
+```
+
+```{r MI-post-hoc}
+dunn_result <- dunnTest(mi ~ as.factor(day), data = df, method = "bonferroni")
+
+sorted_dunn <- dunn_result$res[order(dunn_result$res$P.adj), ]
+n_significant <- sum(dunn_result$P.adj < 0.05)
+
+n_significant
+sorted_dunn
+```

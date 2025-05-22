@@ -1,0 +1,127 @@
+[
+  {
+    "day": 1,
+    "strategy": "None",
+    "part1": "data = [*map(int, open('in.txt').read().split())]\nA, B = sorted(data[0::2]), sorted(data[1::2])\nprint(sum(map(lambda a, b: abs(a-b), A, B)),\n      sum(map(lambda a: a * B.count(a), A)))"
+  },
+  {
+    "day": 2,
+    "strategy": "None",
+    "part1": "def is_safe(row):\n    inc = [row[i + 1] - row[i] for i in range(len(row) - 1)]\n    if set(inc) <= {1, 2, 3} or set(inc) <= {-1, -2, -3}:\n        return True\n    return False\n\ndata = [[int(y) for y in x.split(' ')] for x in open('02.txt').read().split('\\n')]\n\nsafe_count = sum([is_safe(row) for row in data])\nprint(safe_count)\n\nsafe_count = sum([any([is_safe(row[:i] + row[i + 1:]) for i in range(len(row))]) for row in data])\nprint(safe_count)"
+  },
+  {
+    "day": 3,
+    "strategy": "None",
+    "part1": "from re import findall\n\ntotal1 = total2 = 0\nenabled = True\ndata = open(...).read()\n\nfor a, b, do, dont in findall(r\"mul\\((\\d+),(\\d+)\\)|(do\\(\\))|(don't\\(\\))\", data):\n    if do or dont:\n        enabled = bool(do)\n    else:\n        x = int(a) * int(b)\n        total1 += x\n        total2 += x * enabled\n\nprint(total1, total2)"
+  },
+  {
+    "day": 4,
+    "strategy": "None",
+    "part1": "T = list('MAS'), list('SAM')\nprint(sum([G[i+d, j+d] for d in (-1,0,1)] in T\n      and [G[i+d, j-d] for d in (-1,0,1)] in T for i,j in g))"
+  },
+  {
+    "day": 5,
+    "strategy": "None",
+    "part1": "cmp = cmp_to_key(lambda x,y: 1-2*(x+'|'+y in rules))\n...\ngood = sorted(orig, key=cmp)"
+  },
+  {
+    "day": 6,
+    "strategy": "None",
+    "part1": "directions = {\n        0: (-1, 0),\n        1: (0, 1),\n        2: (1, 0),\n        3: (0, -1),\n    }"
+  },
+  {
+    "day": 7,
+    "strategy": "None",
+    "part1": "class int(int):\n    __or__ = lambda x, y: (x-y) / (10 ** int(log10(y)+1))"
+  },
+  {
+    "day": 8,
+    "strategy": "None",
+    "part1": "G = {i+j*1j: c for i,r in enumerate(open(0))\n               for j,c in enumerate(r.strip())}\n\nfor N in [1], range(50): print(len({a + n*(a-b)\n    for a in G for b in G if '.' < G[a] == G[b]\n    and a != b for n in N} & {*G}))"
+  },
+  {
+    "day": 9,
+    "strategy": "None",
+    "part1": "for used in mem[::-2]:\n    for free in mem[1::2]:\n        if (free.pos <= used.pos\n        and free.len >= used.len):\n            used.pos  = free.pos\n            free.pos += used.len\n            free.len -= used.len"
+  },
+  {
+    "day": 10,
+    "strategy": "None",
+    "part1": "H = np.array([[*x.strip()]for x in open(0)])\nP = H=='0'\nfor h in '123456789':\n    K = [[0,1,0], [1,0,1], [0,1,0]]\n    P = convolve2d(P, K, mode='same')*(H==h)\nprint(P.sum())"
+  },
+  {
+    "day": 11,
+    "strategy": "None",
+    "part1": "l = floor(log10(x))+1\nif l % 2 == 0:\n    a = x // 10**(l//2)\n    b = x %  10**(l//2)"
+  },
+  {
+    "day": 12,
+    "strategy": "None",
+    "part1": "OOOOO\nOXOXO\nOXXXO"
+  },
+  {
+    "day": 13,
+    "strategy": "None",
+    "part1": "S = M[..., :2]\nP = M[..., 2:]\nR = np.linalg.solve(S, P).round()\nprint(R.squeeze() @ [3,1] @ (S @ R == P).all(1))"
+  },
+  {
+    "day": 14,
+    "strategy": "None",
+    "part1": "def plot(robots)-> str:\n    grid = {(r.x,r.y) for r in robots}\n    return \"\\n\".join(''.join(\"#\" if (x,y) in grid else \" \"\n                     for x in range(width)) for y in range(height))\n\ndef part2(robots):\n    minsize= None\n\n    for i in itertools.count():\n        p = plot(robots)\n        size = len(gzip.compress(p.encode('utf8')))\n        if minsize is None or size < minsize:\n            minsize = size\n            print(\"-\"*75, size, i)\n            print(p)\n            print(\"-\"*75)\n        robots = [r.move(1) for r in robots]"
+  },
+  {
+    "day": 15,
+    "strategy": "None",
+    "part1": "if all([\n    grid[p] != '[' or move(p+1, d) and move(p, d),\n    grid[p] != ']' or move(p-1, d) and move(p, d),\n    grid[p] != 'O' or move(p, d), grid[p] != '#']):\n        grid[p], grid[p-d] = grid[p-d], grid[p]"
+  },
+  {
+    "day": 16,
+    "strategy": "None",
+    "part1": "import sys\nfrom heapq import heappop, heappush\n\ngrid = [line.rstrip() for line in sys.stdin]\nstart = next((x, y) for y, row in enumerate(grid)\n             for x, cell in enumerate(row) if cell == 'S')\nend = next((x, y) for y, row in enumerate(grid)\n           for x, cell in enumerate(row) if cell == 'E')\nwork = [(0, (start,), 1, 0)]\nbest_costs = {(*start, 1, 0): 0}\nbest_end_cost = 0\nbest_seats = set()\n\nwhile work:\n    cost, path, dx, dy = heappop(work)\n    x, y = pos = path[-1]\n    if pos == end:\n        best_seats |= {*path}\n        best_end_cost = cost\n    elif not best_end_cost or cost < best_end_cost:\n        for cost, x, y, dx, dy in (\n            (cost + 1, x + dx, y + dy, dx, dy),  # straight\n            (cost + 1000, x, y, dy, -dx),        # left\n            (cost + 1000, x, y, -dy, dx),        # right\n        ):\n            pos = x, y, dx, dy\n            if grid[y][x] != '#' and best_costs.get(pos, cost + 1) >= cost:\n                best_costs[pos] = cost\n                heappush(work, (cost, path + ((x, y),), dx, dy))\n\nprint(best_end_cost)\nprint(len(best_seats))"
+  },
+  {
+    "day": 17,
+    "strategy": "Recursion",
+    "part1": "g = list( map( int, open( 0 ).read().split()[ -1 ].split( ',' ) ) )\n\ndef solve( p, r ):\n    if p < 0:\n        print( r )\n        return True\n    for d in range( 8 ):\n        a, i = r << 3 | d, 0\n        while i < len( g ):\n            if   g[ i + 1 ] <= 3: o = g[ i + 1 ]\n            elif g[ i + 1 ] == 4: o = a\n            elif g[ i + 1 ] == 5: o = b\n            elif g[ i + 1 ] == 6: o = c\n            if   g[ i ] == 0: a >>= o\n            elif g[ i ] == 1: b  ^= g[ i + 1 ]\n            elif g[ i ] == 2: b   = o & 7\n            elif g[ i ] == 3: i   = g[ i + 1 ] - 2 if a != 0 else i\n            elif g[ i ] == 4: b  ^= c\n            elif g[ i ] == 5: w   = o & 7; break\n            elif g[ i ] == 6: b   = a >> o\n            elif g[ i ] == 7: c   = a >> o\n            i += 2\n        if w == g[ p ] and solve( p - 1, r << 3 | d ):\n            return True\n    return False\n\nsolve( len( g ) - 1, 0 )"
+  },
+  {
+    "day": 18,
+    "strategy": "None",
+    "part1": "print(data[bisect(range(len(data)), 1e9-1, key=path)-1])"
+  },
+  {
+    "day": 19,
+    "strategy": "Recursion",
+    "part1": "def count(d):\n    return d == '' or sum(count(d.removeprefix(p))\n        for p in P.split(', ') if d.startswith(p))"
+  },
+  {
+    "day": 20,
+    "strategy": "None",
+    "part1": "for (p,i), (q,j) in combinations(dist.items(), 2):\n    d = abs((p-q).real) + abs((p-q).imag)\n    if d == 2 and j-i-d >= 100: a += 1\n    if d < 21 and j-i-d >= 100: b += 1\nprint(a, b)"
+  },
+  {
+    "day": 21,
+    "strategy": "Recursion",
+    "part1": "import fileinput, functools\n\nn = [ \"789\", \"456\", \"123\", \" 0A\" ]\nd = [ \" ^A\", \"<v>\" ]\n\ndef path( p, f, t ):\n    fx, fy = next( ( x, y ) for y, r in enumerate( p ) for x, c in enumerate( r ) if c == f )\n    tx, ty = next( ( x, y ) for y, r in enumerate( p ) for x, c in enumerate( r ) if c == t )\n    def g( x, y, s ):\n        if ( x, y ) == ( tx, ty ):            yield s + 'A'\n        if tx < x and p[ y ][ x - 1 ] != ' ': yield from g( x - 1, y, s + '<' )\n        if ty < y and p[ y - 1 ][ x ] != ' ': yield from g( x, y - 1, s + '^' )\n        if ty > y and p[ y + 1 ][ x ] != ' ': yield from g( x, y + 1, s + 'v' )\n        if tx > x and p[ y ][ x + 1 ] != ' ': yield from g( x + 1, y, s + '>' )\n    return min( g( fx, fy, \"\" ),\n                key = lambda p: sum( a != b for a, b in zip( p, p[ 1 : ] ) ) )\n\n@functools.cache\ndef solve( s, l ):\n    if l > 25: return len( s )\n    return sum( solve( path( d if l else n, f, t ), l + 1 ) for f, t in zip( 'A' + s, s ) )\n\nprint( sum( solve( s.strip(), 0 ) * int( s[ : 3 ] )\n            for s in fileinput.input() ) )"
+  },
+  {
+    "day": 22,
+    "strategy": "DynamicProgramming",
+    "part1": "import numpy as np\nnums = [int(x) for x in open('input_2024_22.txt').read().split('\\n')]\nm = 16777216\nrepeats = 2000\ntotal = 0\nmemos = {}\nfor x in nums: \n    seq = np.zeros(repeats + 1, dtype = int)\n    seq[0] = x % 10\n    for j in range(1, repeats + 1):\n        x = (x ^ (x * 64)) % m\n        x = (x ^ (x // 32)) % m\n        x = (x ^ (x * 2048)) % m\n        seq[j] =  x % 10\n    total += x\n    diffs = np.diff(seq)\n    seen = set()\n    for p in range(4,len(diffs)):\n        h = tuple(diffs[p-3:p+1])\n        if h not in memos and h not in seen:\n            memos[h] = seq[p + 1]\n        elif h not in seen:\n            memos[h] += seq[p + 1]\n        seen.add(h)\nprint('Part 1:', total)\nprint('Part 2: ', max(memos.values()))"
+  },
+  {
+    "day": 23,
+    "strategy": "None",
+    "part1": "print(sum({(a,b), (b,c), (c,a)} < connections\n          and 't' in (a + b + c)[::2]\n          for a, b, c in combinations(computers, 3)))"
+  },
+  {
+    "day": 24,
+    "strategy": "None",
+    "part1": "wires = {}\noperations = []\n\ndef process(op, op1, op2):\n    if op == \"AND\":\n        return op1 & op2\n    elif op == \"OR\":\n        return op1 | op2\n    elif op == \"XOR\":\n        return op1 ^ op2\n\nhighest_z = \"z00\"\ndata = open(\"day24input.txt\").read().split(\"\\n\")\nfor line in data:\n    if \":\" in line:\n        wire, value = line.split(\": \")\n        wires[wire] = int(value)\n    elif \"->\" in line:\n        op1, op, op2, _, res = line.split(\" \")\n        operations.append((op1, op, op2, res))\n        if res[0] == \"z\" and int(res[1:]) > int(highest_z[1:]):\n            highest_z = res\n\nwrong = set()\nfor op1, op, op2, res in operations:\n    if res[0] == \"z\" and op != \"XOR\" and res != highest_z:\n        wrong.add(res)\n    if (\n        op == \"XOR\"\n        and res[0] not in [\"x\", \"y\", \"z\"]\n        and op1[0] not in [\"x\", \"y\", \"z\"]\n        and op2[0] not in [\"x\", \"y\", \"z\"]\n    ):\n        wrong.add(res)\n    if op == \"AND\" and \"x00\" not in [op1, op2]:\n        for subop1, subop, subop2, subres in operations:\n            if (res == subop1 or res == subop2) and subop != \"OR\":\n                wrong.add(res)\n    if op == \"XOR\":\n        for subop1, subop, subop2, subres in operations:\n            if (res == subop1 or res == subop2) and subop == \"OR\":\n                wrong.add(res)\n\nwhile len(operations):\n    op1, op, op2, res = operations.pop(0)\n    if op1 in wires and op2 in wires:\n        wires[res] = process(op, wires[op1], wires[op2])\n    else:\n        operations.append((op1, op, op2, res))\n\nbits = [str(wires[wire]) for wire in sorted(wires, reverse=True) if wire[0] == \"z\"]\nprint(int(\"\".join(bits), 2))\nprint(\",\".join(sorted(wrong)))"
+  },
+  {
+    "day": 25,
+    "strategy": "None",
+    "part1": "items = [{i for i, c in enumerate(item) if c == '#'}\n    for item in open('in.txt').read().split('\\n\\n')]\n\nprint(sum(not k&l for k in items for l in items)//2)"
+  }
+]
