@@ -10,10 +10,8 @@ library(tidyverse)
 library(jsonlite)
 library(janitor)
 
-# Load raw data as list
 data <- fromJSON("../data/solutions_with_metrics.json", simplifyVector = FALSE)
 
-# Extract relevant fields
 df <- purrr::map_dfr(data, function(sol) {
   if (is.null(sol$algorithmicStrategies) || 
       is.null(sol$maintainabilityIndex$mi) ||

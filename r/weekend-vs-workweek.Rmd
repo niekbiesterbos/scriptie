@@ -15,7 +15,6 @@ library(dunn.test)
 
 data <- fromJSON("../data/solutions_with_metrics.json", simplifyVector = FALSE)
 
-# Step 2: Build dataframe
 df <- purrr::map_dfr(data, function(sol) {
   if (is.null(sol$algorithmicStrategies) || 
       is.null(sol$maintainabilityIndex$mi) ||
@@ -41,7 +40,6 @@ df <- purrr::map_dfr(data, function(sol) {
 })
 
 
-# Step 3: Clean missing
 df <- df %>% filter(!is.na(year), !is.na(day), !is.na(mi), !is.na(halstead), !is.na(cc))
 ```
 

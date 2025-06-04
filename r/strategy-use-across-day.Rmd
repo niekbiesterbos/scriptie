@@ -16,7 +16,6 @@ library(broom)
 
 data <- fromJSON("../data/solutions_with_metrics.json", simplifyVector = FALSE)
 
-# Step 2: Build dataframe
 df <- purrr::map_dfr(data, function(sol) {
   if (is.null(sol$algorithmicStrategies) || 
       is.null(sol$maintainabilityIndex$mi) ||
@@ -40,7 +39,6 @@ df <- purrr::map_dfr(data, function(sol) {
   tibble(strategy = strategy, day = day, year = year, mi = mi, halstead = halstead, cc = cc)
 })
 
-# Step 3: Clean missing
 df <- df %>% filter(!is.na(strategy), !is.na(day), !is.na(mi), !is.na(halstead), !is.na(cc))
 ```
 
@@ -59,7 +57,6 @@ ggplot(df_norm, aes(x = factor(day), y = strategy, fill = prop)) +
 
 ggsave("images/strategy_per_day_normalized_by_strategy.jpg", width = 8, height = 5, dpi = 300)
 
-# Count strategies per day and normalize per day
 df_day_norm <- df %>%
   count(day, strategy) %>%
   group_by(day) %>%
@@ -91,7 +88,6 @@ expected_df %>%
   pivot_wider(names_from = day, values_from = expected) %>%
   knitr::kable(digits = 1, caption = "Expected counts per cell (strategy × day)")
 
-# Fisher freeman halton because n < 5 for many
 chisq.test(table_strat_day, simulate.p.value = TRUE, B = 9999)
 
 X2 <- 490.16
